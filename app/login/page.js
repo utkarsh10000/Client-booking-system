@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Head from 'next/head';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -80,6 +81,10 @@ export default function LoginPage() {
   };
 
   return (
+    <>
+    <Head>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@400;500;600;700&display=swap" />
+    </Head>
     <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, var(--forest-dark) 0%, var(--forest) 55%, #2d5a44 100%)',
@@ -301,5 +306,6 @@ export default function LoginPage() {
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
+    </>
   );
 }

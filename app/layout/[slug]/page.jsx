@@ -1217,12 +1217,11 @@ export default function LayoutPage() {
                             </>
                           )}
                           {selectedPlot.status === 'hold' && isAdmin && (
-                            <a
-                              href={`/registration?plotId=${selectedPlot._id}&plotNo=${selectedPlot.plotNo}&sector=${selectedPlot.sector}&area=${selectedPlot.area}&price=${selectedPlot.pricePerSqYard}`}
-                              onClick={() => { try { sessionStorage.setItem('layoutUrl', window.location.href); } catch(_) {} }}
+                            <button
+                              onClick={() => router.push(`/registration?plotId=${selectedPlot._id}&plotNo=${selectedPlot.plotNo}&sector=${selectedPlot.sector}&area=${selectedPlot.area}&price=${selectedPlot.pricePerSqYard}`)}
                               style={btnPrimary}>
                               Book This Plot
-                            </a>
+                            </button>
                           )}
                         </div>
                       )}
