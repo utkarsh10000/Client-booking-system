@@ -122,7 +122,7 @@ export default function HomePage() {
               <div style={{
                 fontSize: 10, letterSpacing: 4, color: 'var(--gold)',
                 marginBottom: 2, fontWeight: 700, textTransform: 'uppercase'
-              }}>Haute Developer</div>
+              }}>Haute Developers</div>
               <div style={{
                 fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600,
                 color: 'var(--white)', lineHeight: 1.1

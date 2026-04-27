@@ -981,7 +981,7 @@ export default function LayoutPage() {
                         overflow: 'hidden', border: '1px solid var(--border)',
                         boxShadow: 'var(--shadow)', background: 'var(--forest-dark)'
                       }}>
-                      <img src={project?.layoutImage || '/assets/expressway-layout.jpg'} alt="Layout Map" style={{ width: '100%', height: 190, objectFit: 'cover', display: 'block' }} onError={e => { e.target.style.display = 'none'; }} />
+                      <img src={project?.layoutImage || (project?.name === 'Haute World City' ? '/assets/hwc-layout.jpg' : '/assets/expressway-layout.jpg')} alt="Layout Map" style={{ width: '100%', height: 190, objectFit: 'cover', display: 'block' }} onError={e => { e.target.style.display = 'none'; }} />
                       <div style={{ padding: '10px 16px', background: 'var(--forest-dark)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ color: 'var(--gold)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' }}>Layout Plan</span>
                         <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>Click to enlarge</span>
@@ -1207,7 +1207,7 @@ export default function LayoutPage() {
                         <div style={{ marginTop: 20, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                           {selectedPlot.status === 'available' && (
                             <>
-                                <button onClick={() => router.push(`/registration?plotId=${selectedPlot._id}&plotNo=${selectedPlot.plotNo}&sector=${selectedPlot.sector}&area=${selectedPlot.area}&price=${selectedPlot.pricePerSqYard}`)}
+                                <button onClick={() => router.push(`/registration?plotId=${selectedPlot._id}&plotNo=${selectedPlot.plotNo}&sector=${selectedPlot.sector}&area=${selectedPlot.area}&price=${selectedPlot.pricePerSqYard}&projectName=${encodeURIComponent(project?.name || '')}&city=${encodeURIComponent(project?.location || '')}`)}
                                 style={btnPrimary}>
                                 Book This Plot
                               </button>
@@ -1218,7 +1218,7 @@ export default function LayoutPage() {
                           )}
                           {selectedPlot.status === 'hold' && isAdmin && (
                             <button
-                              onClick={() => router.push(`/registration?plotId=${selectedPlot._id}&plotNo=${selectedPlot.plotNo}&sector=${selectedPlot.sector}&area=${selectedPlot.area}&price=${selectedPlot.pricePerSqYard}`)}
+                              onClick={() => router.push(`/registration?plotId=${selectedPlot._id}&plotNo=${selectedPlot.plotNo}&sector=${selectedPlot.sector}&area=${selectedPlot.area}&price=${selectedPlot.pricePerSqYard}&projectName=${encodeURIComponent(project?.name || '')}&city=${encodeURIComponent(project?.location || '')}`)}
                               style={btnPrimary}>
                               Book This Plot
                             </button>
@@ -1358,7 +1358,7 @@ export default function LayoutPage() {
                 onClick={() => setShowLayoutMap(false)}
                 style={{ position: 'absolute', top: -16, right: -16, width: 36, height: 36, borderRadius: '50%', background: 'var(--gold)', color: 'var(--white)', border: 'none', fontSize: 18, cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>×</button>
               <img
-                src={project?.layoutImage || '/assets/expressway-layout.jpg'}
+               src={project?.layoutImage || (project?.name === 'Haute World City' ? '/assets/hwc-layout.jpg' : '/assets/expressway-layout.jpg')}
                 alt="Layout Map"
                 style={{ maxWidth: '95vw', maxHeight: '92vh', objectFit: 'contain', borderRadius: 12, boxShadow: '0 8px 60px rgba(0,0,0,0.6)', display: 'block' }}
               />

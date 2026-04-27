@@ -10,12 +10,7 @@ const PROJECT_OPTIONS = [
   'Haute Residency',
 ];
 
-const PROJECT_CITY_MAP = {
-  'Expressway Residency': 'Ghaziabad',
-  'Haute Grand City': 'Rajnagar Extension, Ghaziabad',
-  'Haute World City': 'Dholera, Gujarat',
-  'Haute Residency': '',
-};
+const PROJECT_CITY_MAP = {};
 
 const PLC_PRESET_OPTIONS = ['N/A', '5%', '10%', '15%'];
 const CLUB_MEMBERSHIP = 100000;
@@ -79,19 +74,20 @@ export default function ProjectDetails({ data, onChange, onNext }) {
   const [isCustomPLC, setIsCustomPLC] = useState(false);
   const [customPLCValue, setCustomPLCValue] = useState('');
 
-  const fromLayout = !!searchParams.get('plotId');
-  const lockedPlotNo = searchParams.get('plotNo') || '';
-  const lockedSector = searchParams.get('sector') || '';
-  const lockedArea   = searchParams.get('area')   || '';
-  const lockedPrice  = searchParams.get('price')  || '';
+  const fromLayout      = !!searchParams.get('plotId');
+const lockedPlotNo    = searchParams.get('plotNo')       || '';
+const lockedSector    = searchParams.get('sector')       || '';
+const lockedArea      = searchParams.get('area')         || '';
+const lockedPrice     = searchParams.get('price')        || '';
+const lockedProject   = searchParams.get('projectName')  || '';
+const lockedCity      = searchParams.get('city')         || '';
 
-  useEffect(() => {
+ useEffect(() => {
     if (fromLayout) {
-      const prefilledCity = PROJECT_CITY_MAP['Expressway Residency'];
       const updated = {
         ...data,
-        projectName:    'Expressway Residency',
-        city:           prefilledCity,
+        projectName:    lockedProject,
+        city:           lockedCity,
         plotNo:         lockedPlotNo,
         plotSize:       lockedArea,
         pricePerSqYard: lockedPrice,
@@ -106,7 +102,8 @@ export default function ProjectDetails({ data, onChange, onNext }) {
   const activePLCOption = isCustomPLC ? (customPLCValue ? `${customPLCValue}%` : '') : (data.plc || '');
   const plcAmount = calcPLC(bsp, activePLCOption);
   const devCharge = calcDevCharge(data.plotSize);
-  const totalCost = bsp + plcAmount + CLUB_MEMBERSHIP + devCharge;
+  const hasClubMembership = data.projectName !== 'Haute World City';
+  const totalCost = bsp + plcAmount + (hasClubMembership ? CLUB_MEMBERSHIP : 0) + devCharge;
 
   const fmt = (num) =>
     num.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -400,6 +397,7 @@ export default function ProjectDetails({ data, onChange, onNext }) {
         </div>
 
         {/* Club Membership */}
+        {hasClubMembership && (
         <div>
           <label style={labelStyle}>
             Club Membership
@@ -407,6 +405,7 @@ export default function ProjectDetails({ data, onChange, onNext }) {
           </label>
           <input type="text" value="₹ 1,00,000" readOnly style={readOnlyStyle} tabIndex={-1} />
         </div>
+        )}
 
         {/* Dev Charge */}
         <div>
@@ -435,7 +434,7 @@ export default function ProjectDetails({ data, onChange, onNext }) {
             Total Cost
           </p>
           <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)', margin: 0 }}>
-            BSP + PLC + Club Membership + Development Charge
+            BSP + PLC + {hasClubMembership ? 'Club Membership + ' : ''}Development Charge
           </p>
         </div>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.4rem,2.5vw,1.9rem)', fontWeight: 600, color: 'var(--white)' }}>

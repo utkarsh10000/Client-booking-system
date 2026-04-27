@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Client Registration | Haute Developer',
-  description: 'Client registration portal for Haute Developer projects',
+  title: 'Client Registration | Haute Developers',
+  description: 'Client registration portal for Haute Developers projects',
 };
 
 export default function RootLayout({ children }) {

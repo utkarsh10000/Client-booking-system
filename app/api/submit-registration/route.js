@@ -209,7 +209,7 @@ export async function POST(request) {
       fmt(project?.bsp),
       project?.plc            || 'N/A',
       fmt(project?.plcAmount),
-      '1,00,000',
+      project?.projectName !== 'Haute World City' ? '1,00,000' : '0',
       fmt(project?.devCharge),
       fmt(project?.totalCost),
       payment?.bookingAmount  || '',
@@ -261,17 +261,17 @@ export async function POST(request) {
         });
 
         await transporter.sendMail({
-          from: `"Haute Developer" <${process.env.EMAIL_USER}>`,
+          from: `"Haute Developers" <${process.env.EMAIL_USER}>`,
           to: personal.email,
-          cc: 'sales@hautedevelopers.com',
+          bcc: process.env.EMAIL_USER,
           subject: `Booking Confirmation – Plot No. ${project?.plotNo}, ${project?.sector} Sector`,
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #f9f6f2; border-radius: 12px;">
-              <div style="background: #2c2418; padding: 24px 32px; border-radius: 8px 8px 0 0; text-align: center;">
-                <h1 style="color: #c9a87c; margin: 0; font-size: 22px; letter-spacing: 2px;">HAUTE DEVELOPER</h1>
+         html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 16px; background: #f9f6f2;">
+              <div style="background: #2c2418; padding: 20px 16px; border-radius: 8px 8px 0 0; text-align: center;">
+                <h1 style="color: #c9a87c; margin: 0; font-size: 22px; letter-spacing: 2px;">HAUTE DEVELOPERS</h1>
                 <p style="color: #a08060; margin: 6px 0 0; font-size: 12px; letter-spacing: 3px;">${(project?.projectName || 'EXPRESSWAY RESIDENCY').toUpperCase()}</p>
               </div>
-              <div style="background: #fff; padding: 32px; border-radius: 0 0 8px 8px; border: 1px solid #e8dfd4;">
+             <div style="background: #fff; padding: 20px 16px; border-radius: 0 0 8px 8px; border: 1px solid #e8dfd4;">
 
                 <p style="font-size: 15px; color: #2c2418;">Dear <strong>${personal?.firstName} ${personal?.lastName}</strong>,</p>
 
@@ -282,18 +282,18 @@ export async function POST(request) {
                 </p>
 
                 <p style="font-size: 14px; color: #4a3728; line-height: 1.8;">
-                  ${project?.projectName || 'Expressway Residency'} is an upcoming landmark project promoted by Haute Developers bringing 15+ years of experience in delivering residential projects. The project entails a modern lifestyle, serene living and premium experience, strategically located on Delhi-Meerut Expressway (DME) well-connected to NCR through Expressways.
+                  ${project?.projectName || 'Expressway Residency'} is an upcoming landmark project promoted by Haute Developers bringing 15+ years of experience in delivering residential projects. The project entails a modern lifestyle, serene living and premium experience, strategically located in ${project?.city || 'India'}.
                 </p>
 
                 <p style="font-size: 14px; color: #4a3728; line-height: 1.8;">Please find the booking details of your unit here.</p>
 
                 <p style="font-size: 13px; font-weight: 700; color: #2c2418; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase;">Receipt Details:</p>
 
-                <div style="background: #f9f6f2; border: 1px solid #e8dfd4; border-radius: 8px; padding: 20px; margin: 12px 0 20px;">
-                  <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+               <div style="background: #f9f6f2; border: 1px solid #e8dfd4; border-radius: 8px; padding: 12px; margin: 12px 0 20px;">
+                  <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                     <tr>
                       <td style="padding: 8px 0; color: #9e8c7a; width: 40%;">Plot No.</td>
-                      <td style="padding: 8px 0; color: #2c2418; font-weight: 600;">${project?.sector ? project.sector + '-' : ''}${project?.plotNo}</td>
+                     <td style="padding: 8px 0; color: #2c2418; font-weight: 600;">${project?.sector && project.sector !== 'RESIDENTIAL' ? project.sector + '-' : ''}${project?.plotNo}</td>
                     </tr>
                     <tr style="border-top: 1px solid #e8dfd4;">
                       <td style="padding: 8px 0; color: #9e8c7a;">Size</td>
@@ -307,6 +307,11 @@ export async function POST(request) {
                       <td style="padding: 8px 0; color: #9e8c7a;">Payment Mode</td>
                       <td style="padding: 8px 0; color: #2c2418; font-weight: 600;">${payment?.bookingMode || '—'}</td>
                     </tr>
+                    ${project?.projectName !== 'Haute World City' ? `
+                    <tr style="border-top: 1px solid #e8dfd4;">
+                      <td style="padding: 8px 0; color: #9e8c7a;">Club Membership</td>
+                      <td style="padding: 8px 0; color: #2c2418; font-weight: 600;">₹1,00,000/-</td>
+                    </tr>` : ''}
                     <tr style="border-top: 1px solid #e8dfd4;">
                       <td style="padding: 8px 0; color: #9e8c7a;">Total Cost</td>
                       <td style="padding: 8px 0; color: #2c2418; font-weight: 600;">₹${fmt(project?.totalCost)}/-</td>
@@ -327,10 +332,9 @@ export async function POST(request) {
                 <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #e8dfd4;">
                   <p style="font-size: 13px; color: #2c2418; font-weight: 700; margin: 0 0 6px;">Best Regards,</p>
                   <p style="font-size: 13px; color: #2c2418; font-weight: 700; margin: 0 0 16px;">Team Haute Developers</p>
-                  <p style="font-size: 12px; color: #9e8c7a; margin: 0 0 4px;">Corporate Address: H214, Sec 63, Noida, U.P., India</p>
-                  <p style="font-size: 12px; color: #9e8c7a; margin: 0 0 4px;">Visit us at <a href="https://www.hautedevelopers.com" style="color: #c9a87c;">www.hautedevelopers.com</a></p>
-                  <p style="font-size: 12px; color: #9e8c7a; margin: 0;">Connect with us at +91-8383073291</p>
-                </div>
+                  <p style="font-size: 12px; color: #9e8c7a; margin: 0 0 4px; word-break: break-word;">Corporate Address: H214, Sec 63, Noida, U.P., India</p>
+                  <p style="font-size: 12px; color: #9e8c7a; margin: 0 0 4px; word-break: break-word;">Visit us at <a href="https://www.hautedevelopers.com" style="color: #c9a87c;">www.hautedevelopers.com</a></p>
+                  <p style="font-size: 12px; color: #9e8c7a; margin: 0; word-break: break-word;">Connect with us at +91-8383073291</p>
 
                 <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #e8dfd4; text-align: center;">
                   <p style="font-size: 11px; color: #b5a090; margin: 0;">This is an automated confirmation. Please do not reply to this email.</p>
