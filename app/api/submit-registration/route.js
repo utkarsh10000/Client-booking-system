@@ -263,6 +263,7 @@ export async function POST(request) {
         await transporter.sendMail({
           from: `"Haute Developer" <${process.env.EMAIL_USER}>`,
           to: personal.email,
+          cc: 'sales@hautedevelopers.com',
           subject: `Booking Confirmation – Plot No. ${project?.plotNo}, ${project?.sector} Sector`,
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #f9f6f2; border-radius: 12px;">
