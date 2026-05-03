@@ -1,1262 +1,3 @@
-// import mongoose from 'mongoose';
-// import dotenv from 'dotenv';
-// import Plot from '../models/Plot.js';
-// import Sector from '../models/Sector.js';
-// import Amenity from '../models/Amenity.js';
-
-// dotenv.config({ path: '.env.local' });
-
-// const MONGODB_URI = process.env.MONGODB_URI;
-// if (!MONGODB_URI) throw new Error('MONGODB_URI not set in .env.local');
-
-// const PROJECT_ID = new mongoose.Types.ObjectId('69e9f2d2ba997b5b04a4c900');
-
-// const SIZES = {
-//   300:    { area: 300, dimensions: "45'x60'" },
-//   253:    { area: 253, dimensions: "31.5'x72.5'" },
-//   '250a': { area: 250, dimensions: "50'x45'" },
-//   '250b': { area: 250, dimensions: "45'x50'" },
-//   '250c': { area: 250, dimensions: "37.5'x60'" },
-//   200:    { area: 200, dimensions: "40'x45'" },
-//   '200b': { area: 200, dimensions: "30'x60'" },
-//   180:    { area: 180, dimensions: "27'x60'" },
-//   166:    { area: 166, dimensions: "30'x50'" },
-//   150:    { area: 150, dimensions: "30'x45'" },
-//   135:    { area: 135, dimensions: "27'x45'" },
-//   100:    { area: 100, dimensions: "20'x45'" },
-// };
-
-// // ─────────────────────────────────────────────────────────────────────────────
-// // ASTER — plots mapped one by one
-// // 12–23 → 100 | 24,25 → 250b | 26–38 → 100 | 41–60 → 166
-// // 63–75 → 100 | 76,77 → 250b | 78–90 → 100 | 95–101 → 100 | 102,103 → 250b
-// // All others (01–11,12A,39,40,51,61,62,91–94,104–106) → odd, keep original
-// // ─────────────────────────────────────────────────────────────────────────────
-// const ASTER_PLOTS = [
-//   { plotNo: '01',  sizeKey: '300' },   // odd
-//   { plotNo: '02',  sizeKey: '300' },   // odd
-//   { plotNo: '03',  sizeKey: '300' },   // odd
-//   { plotNo: '04',  sizeKey: '300' },   // odd
-//   { plotNo: '05',  sizeKey: '300' },   // odd
-//   { plotNo: '06',  sizeKey: '300' },   // odd
-//   { plotNo: '07',  sizeKey: '300' },   // odd
-//   { plotNo: '08',  sizeKey: '300' },   // odd
-//   { plotNo: '09',  sizeKey: '300' },   // odd
-//   { plotNo: '10',  sizeKey: '300' },   // odd
-//   { plotNo: '11',  sizeKey: '300' },   // odd
-//   { plotNo: '12',  sizeKey: '100' },
-//   { plotNo: '12A', sizeKey: '100' },
-//   { plotNo: '14',  sizeKey: '100' },
-//   { plotNo: '15',  sizeKey: '100' },
-//   { plotNo: '16',  sizeKey: '100' },
-//   { plotNo: '17',  sizeKey: '100' },
-//   { plotNo: '18',  sizeKey: '100' },
-//   { plotNo: '19',  sizeKey: '100' },
-//   { plotNo: '20',  sizeKey: '100' },
-//   { plotNo: '21',  sizeKey: '100' },
-//   { plotNo: '22',  sizeKey: '100' },
-//   { plotNo: '23',  sizeKey: '100' },
-//   { plotNo: '24',  sizeKey: '250b' },
-//   { plotNo: '25',  sizeKey: '250b' },
-//   { plotNo: '26',  sizeKey: '100' },
-//   { plotNo: '27',  sizeKey: '100' },
-//   { plotNo: '28',  sizeKey: '100' },
-//   { plotNo: '29',  sizeKey: '100' },
-//   { plotNo: '30',  sizeKey: '100' },
-//   { plotNo: '31',  sizeKey: '100' },
-//   { plotNo: '32',  sizeKey: '100' },
-//   { plotNo: '33',  sizeKey: '100' },
-//   { plotNo: '34',  sizeKey: '100' },
-//   { plotNo: '35',  sizeKey: '100' },
-//   { plotNo: '36',  sizeKey: '100' },
-//   { plotNo: '37',  sizeKey: '100' },
-//   { plotNo: '38',  sizeKey: '100' },
-//   { plotNo: '39',  sizeKey: '300' },   // odd
-//   { plotNo: '40',  sizeKey: '300' },   // odd
-//   { plotNo: '41',  sizeKey: '166' },
-//   { plotNo: '42',  sizeKey: '166' },
-//   { plotNo: '43',  sizeKey: '166' },
-//   { plotNo: '44',  sizeKey: '166' },
-//   { plotNo: '45',  sizeKey: '166' },
-//   { plotNo: '46',  sizeKey: '166' },
-//   { plotNo: '47',  sizeKey: '166' },
-//   { plotNo: '48',  sizeKey: '166' },
-//   { plotNo: '49',  sizeKey: '166' },
-//   { plotNo: '50',  sizeKey: '166' },
-//   { plotNo: '51',  sizeKey: '300' },   // odd
-//   { plotNo: '52',  sizeKey: '166' },
-//   { plotNo: '53',  sizeKey: '166' },
-//   { plotNo: '54',  sizeKey: '166' },
-//   { plotNo: '55',  sizeKey: '166' },
-//   { plotNo: '56',  sizeKey: '166' },
-//   { plotNo: '57',  sizeKey: '166' },
-//   { plotNo: '58',  sizeKey: '166' },
-//   { plotNo: '59',  sizeKey: '166' },
-//   { plotNo: '60',  sizeKey: '166' },
-//   { plotNo: '61',  sizeKey: '300' },   // odd
-//   { plotNo: '62',  sizeKey: '180' },   // odd (original was 180)
-//   { plotNo: '63',  sizeKey: '100' },
-//   { plotNo: '64',  sizeKey: '100' },
-//   { plotNo: '65',  sizeKey: '100' },
-//   { plotNo: '66',  sizeKey: '100' },
-//   { plotNo: '67',  sizeKey: '100' },
-//   { plotNo: '68',  sizeKey: '100' },
-//   { plotNo: '69',  sizeKey: '100' },
-//   { plotNo: '70',  sizeKey: '100' },
-//   { plotNo: '71',  sizeKey: '100' },
-//   { plotNo: '72',  sizeKey: '100' },
-//   { plotNo: '73',  sizeKey: '100' },
-//   { plotNo: '74',  sizeKey: '100' },
-//   { plotNo: '75',  sizeKey: '100' },
-//   { plotNo: '76',  sizeKey: '250b' },
-//   { plotNo: '77',  sizeKey: '250b' },
-//   { plotNo: '78',  sizeKey: '100' },
-//   { plotNo: '79',  sizeKey: '100' },
-//   { plotNo: '80',  sizeKey: '100' },
-//   { plotNo: '81',  sizeKey: '100' },
-//   { plotNo: '82',  sizeKey: '100' },
-//   { plotNo: '83',  sizeKey: '100' },
-//   { plotNo: '84',  sizeKey: '100' },
-//   { plotNo: '85',  sizeKey: '100' },
-//   { plotNo: '86',  sizeKey: '100' },
-//   { plotNo: '87',  sizeKey: '100' },
-//   { plotNo: '88',  sizeKey: '100' },
-//   { plotNo: '89',  sizeKey: '100' },
-//   { plotNo: '90',  sizeKey: '100' },
-//   { plotNo: '91',  sizeKey: '300' },   // odd
-//   { plotNo: '92',  sizeKey: '300' },   // odd
-//   { plotNo: '93',  sizeKey: '300' },   // odd
-//   { plotNo: '94',  sizeKey: '300' },   // odd
-//   { plotNo: '95',  sizeKey: '100' },
-//   { plotNo: '96',  sizeKey: '100' },
-//   { plotNo: '97',  sizeKey: '100' },
-//   { plotNo: '98',  sizeKey: '100' },
-//   { plotNo: '99',  sizeKey: '100' },
-//   { plotNo: '100', sizeKey: '100' },
-//   { plotNo: '101', sizeKey: '100' },
-//   { plotNo: '102', sizeKey: '250b' },
-//   { plotNo: '103', sizeKey: '250b' },
-//   { plotNo: '104', sizeKey: '250b' },  // odd (original was 250b)
-//   { plotNo: '105', sizeKey: '300' },   // odd
-//   { plotNo: '106', sizeKey: '300' },   // odd
-// ];
-
-// // ─────────────────────────────────────────────────────────────────────────────
-// // TULIP — plots mapped one by one
-// // 01,18,19,34,35,46,47,58,59,76,77,88,89,100,101 → 200b
-// // 02–17, 12A → 150 | 22–24 → 150
-// // 25,26,67,68,109 → 250b
-// // 27–33 → 100 | 36–45 → 100 | 48–57 → 100 | 60–66 → 100
-// // 69–75 → 100 | 78–87 → 100 | 90–99 → 100 | 102–108 → 100
-// // Odd: 20, 21
-// // ─────────────────────────────────────────────────────────────────────────────
-// const TULIP_PLOTS = [
-//   { plotNo: '01',  sizeKey: '200b' },
-//   { plotNo: '02',  sizeKey: '150' },
-//   { plotNo: '03',  sizeKey: '150' },
-//   { plotNo: '04',  sizeKey: '150' },
-//   { plotNo: '05',  sizeKey: '150' },
-//   { plotNo: '06',  sizeKey: '150' },
-//   { plotNo: '07',  sizeKey: '150' },
-//   { plotNo: '08',  sizeKey: '150' },
-//   { plotNo: '09',  sizeKey: '150' },
-//   { plotNo: '10',  sizeKey: '150' },
-//   { plotNo: '11',  sizeKey: '150' },
-//   { plotNo: '12',  sizeKey: '150' },
-//   { plotNo: '12A', sizeKey: '150' },
-//   { plotNo: '14',  sizeKey: '150' },
-//   { plotNo: '15',  sizeKey: '150' },
-//   { plotNo: '16',  sizeKey: '150' },
-//   { plotNo: '17',  sizeKey: '150' },
-//   { plotNo: '18',  sizeKey: '200b' },
-//   { plotNo: '19',  sizeKey: '200b' },
-//   { plotNo: '20',  sizeKey: '300' },   // odd
-//   { plotNo: '21',  sizeKey: '150' },   // odd (original was 150)
-//   { plotNo: '22',  sizeKey: '150' },
-//   { plotNo: '23',  sizeKey: '150' },
-//   { plotNo: '24',  sizeKey: '150' },
-//   { plotNo: '25',  sizeKey: '250b' },
-//   { plotNo: '26',  sizeKey: '250b' },
-//   { plotNo: '27',  sizeKey: '100' },
-//   { plotNo: '28',  sizeKey: '100' },
-//   { plotNo: '29',  sizeKey: '100' },
-//   { plotNo: '30',  sizeKey: '100' },
-//   { plotNo: '31',  sizeKey: '100' },
-//   { plotNo: '32',  sizeKey: '100' },
-//   { plotNo: '33',  sizeKey: '100' },
-//   { plotNo: '34',  sizeKey: '200b' },
-//   { plotNo: '35',  sizeKey: '200b' },
-//   { plotNo: '36',  sizeKey: '100' },
-//   { plotNo: '37',  sizeKey: '100' },
-//   { plotNo: '38',  sizeKey: '100' },
-//   { plotNo: '39',  sizeKey: '100' },
-//   { plotNo: '40',  sizeKey: '100' },
-//   { plotNo: '41',  sizeKey: '100' },
-//   { plotNo: '42',  sizeKey: '100' },
-//   { plotNo: '43',  sizeKey: '100' },
-//   { plotNo: '44',  sizeKey: '100' },
-//   { plotNo: '45',  sizeKey: '100' },
-//   { plotNo: '46',  sizeKey: '200b' },
-//   { plotNo: '47',  sizeKey: '200b' },
-//   { plotNo: '48',  sizeKey: '100' },
-//   { plotNo: '49',  sizeKey: '100' },
-//   { plotNo: '50',  sizeKey: '100' },
-//   { plotNo: '51',  sizeKey: '100' },
-//   { plotNo: '52',  sizeKey: '100' },
-//   { plotNo: '53',  sizeKey: '100' },
-//   { plotNo: '54',  sizeKey: '100' },
-//   { plotNo: '55',  sizeKey: '100' },
-//   { plotNo: '56',  sizeKey: '100' },
-//   { plotNo: '57',  sizeKey: '100' },
-//   { plotNo: '58',  sizeKey: '200b' },
-//   { plotNo: '59',  sizeKey: '200b' },
-//   { plotNo: '60',  sizeKey: '100' },
-//   { plotNo: '61',  sizeKey: '100' },
-//   { plotNo: '62',  sizeKey: '100' },
-//   { plotNo: '63',  sizeKey: '100' },
-//   { plotNo: '64',  sizeKey: '100' },
-//   { plotNo: '65',  sizeKey: '100' },
-//   { plotNo: '66',  sizeKey: '100' },
-//   { plotNo: '67',  sizeKey: '250b' },
-//   { plotNo: '68',  sizeKey: '250b' },
-//   { plotNo: '69',  sizeKey: '100' },
-//   { plotNo: '70',  sizeKey: '100' },
-//   { plotNo: '71',  sizeKey: '100' },
-//   { plotNo: '72',  sizeKey: '100' },
-//   { plotNo: '73',  sizeKey: '100' },
-//   { plotNo: '74',  sizeKey: '100' },
-//   { plotNo: '75',  sizeKey: '100' },
-//   { plotNo: '76',  sizeKey: '200b' },
-//   { plotNo: '77',  sizeKey: '200b' },
-//   { plotNo: '78',  sizeKey: '100' },
-//   { plotNo: '79',  sizeKey: '100' },
-//   { plotNo: '80',  sizeKey: '100' },
-//   { plotNo: '81',  sizeKey: '100' },
-//   { plotNo: '82',  sizeKey: '100' },
-//   { plotNo: '83',  sizeKey: '100' },
-//   { plotNo: '84',  sizeKey: '100' },
-//   { plotNo: '85',  sizeKey: '100' },
-//   { plotNo: '86',  sizeKey: '100' },
-//   { plotNo: '87',  sizeKey: '100' },
-//   { plotNo: '88',  sizeKey: '200b' },
-//   { plotNo: '89',  sizeKey: '200b' },
-//   { plotNo: '90',  sizeKey: '100' },
-//   { plotNo: '91',  sizeKey: '100' },
-//   { plotNo: '92',  sizeKey: '100' },
-//   { plotNo: '93',  sizeKey: '100' },
-//   { plotNo: '94',  sizeKey: '100' },
-//   { plotNo: '95',  sizeKey: '100' },
-//   { plotNo: '96',  sizeKey: '100' },
-//   { plotNo: '97',  sizeKey: '100' },
-//   { plotNo: '98',  sizeKey: '100' },
-//   { plotNo: '99',  sizeKey: '100' },
-//   { plotNo: '100', sizeKey: '200b' },
-//   { plotNo: '101', sizeKey: '200b' },
-//   { plotNo: '102', sizeKey: '100' },
-//   { plotNo: '103', sizeKey: '100' },
-//   { plotNo: '104', sizeKey: '100' },
-//   { plotNo: '105', sizeKey: '100' },
-//   { plotNo: '106', sizeKey: '100' },
-//   { plotNo: '107', sizeKey: '100' },
-//   { plotNo: '108', sizeKey: '100' },
-//   { plotNo: '109', sizeKey: '250b' },
-// ];
-
-// // ─────────────────────────────────────────────────────────────────────────────
-// // LOTUS — plots mapped one by one
-// // 01–36 → 200b | 37 → odd | 38–43 → 200b
-// // 44,45 → odd | 46–51 → 150 | 52 → odd
-// // ─────────────────────────────────────────────────────────────────────────────
-// const LOTUS_PLOTS = [
-//   { plotNo: '01',  sizeKey: '200b' },
-//   { plotNo: '02',  sizeKey: '200b' },
-//   { plotNo: '03',  sizeKey: '200b' },
-//   { plotNo: '04',  sizeKey: '200b' },
-//   { plotNo: '05',  sizeKey: '200b' },
-//   { plotNo: '06',  sizeKey: '200b' },
-//   { plotNo: '07',  sizeKey: '200b' },
-//   { plotNo: '08',  sizeKey: '200b' },
-//   { plotNo: '09',  sizeKey: '200b' },
-//   { plotNo: '10',  sizeKey: '200b' },
-//   { plotNo: '11',  sizeKey: '200b' },
-//   { plotNo: '12',  sizeKey: '200b' },
-//   { plotNo: '12A', sizeKey: '200b' },
-//   { plotNo: '14',  sizeKey: '200b' },
-//   { plotNo: '15',  sizeKey: '200b' },
-//   { plotNo: '16',  sizeKey: '200b' },
-//   { plotNo: '17',  sizeKey: '200b' },
-//   { plotNo: '18',  sizeKey: '200b' },
-//   { plotNo: '19',  sizeKey: '200b' },
-//   { plotNo: '20',  sizeKey: '200b' },
-//   { plotNo: '21',  sizeKey: '200b' },
-//   { plotNo: '22',  sizeKey: '200b' },
-//   { plotNo: '23',  sizeKey: '200b' },
-//   { plotNo: '24',  sizeKey: '200b' },
-//   { plotNo: '25',  sizeKey: '200b' },
-//   { plotNo: '26',  sizeKey: '200b' },
-//   { plotNo: '27',  sizeKey: '200b' },
-//   { plotNo: '28',  sizeKey: '200b' },
-//   { plotNo: '29',  sizeKey: '200b' },
-//   { plotNo: '30',  sizeKey: '200b' },
-//   { plotNo: '31',  sizeKey: '200b' },
-//   { plotNo: '32',  sizeKey: '200b' },
-//   { plotNo: '33',  sizeKey: '200b' },
-//   { plotNo: '34',  sizeKey: '200b' },
-//   { plotNo: '35',  sizeKey: '200b' },
-//   { plotNo: '36',  sizeKey: '200b' },
-//   { plotNo: '37',  sizeKey: '200b' },  // odd (original was 200b)
-//   { plotNo: '38',  sizeKey: '200b' },
-//   { plotNo: '39',  sizeKey: '200b' },
-//   { plotNo: '40',  sizeKey: '200b' },
-//   { plotNo: '41',  sizeKey: '200b' },
-//   { plotNo: '42',  sizeKey: '200b' },
-//   { plotNo: '43',  sizeKey: '200b' },
-//   { plotNo: '44',  sizeKey: '300' },   // odd
-//   { plotNo: '45',  sizeKey: '300' },   // odd
-//   { plotNo: '46',  sizeKey: '150' },
-//   { plotNo: '47',  sizeKey: '150' },
-//   { plotNo: '48',  sizeKey: '150' },
-//   { plotNo: '49',  sizeKey: '150' },
-//   { plotNo: '50',  sizeKey: '150' },
-//   { plotNo: '51',  sizeKey: '150' },
-//   { plotNo: '52',  sizeKey: '300' },   // odd
-// ];
-
-// // ─────────────────────────────────────────────────────────────────────────────
-// // SAFFRON — plots mapped one by one
-// // 01–136 → 200b | 137–147 → 250a | 148,149 → 300 | 150–160 → 250a
-// // ─────────────────────────────────────────────────────────────────────────────
-// const SAFFRON_PLOTS = [
-//   { plotNo: '01',  sizeKey: '200b' },
-//   { plotNo: '02',  sizeKey: '200b' },
-//   { plotNo: '03',  sizeKey: '200b' },
-//   { plotNo: '04',  sizeKey: '200b' },
-//   { plotNo: '05',  sizeKey: '200b' },
-//   { plotNo: '06',  sizeKey: '200b' },
-//   { plotNo: '07',  sizeKey: '200b' },
-//   { plotNo: '08',  sizeKey: '200b' },
-//   { plotNo: '09',  sizeKey: '200b' },
-//   { plotNo: '10',  sizeKey: '200b' },
-//   { plotNo: '11',  sizeKey: '200b' },
-//   { plotNo: '12',  sizeKey: '200b' },
-//   { plotNo: '12A', sizeKey: '200b' },
-//   { plotNo: '14',  sizeKey: '200b' },
-//   { plotNo: '15',  sizeKey: '200b' },
-//   { plotNo: '16',  sizeKey: '200b' },
-//   { plotNo: '17',  sizeKey: '200b' },
-//   { plotNo: '18',  sizeKey: '200b' },
-//   { plotNo: '19',  sizeKey: '200b' },
-//   { plotNo: '20',  sizeKey: '200b' },
-//   { plotNo: '21',  sizeKey: '200b' },
-//   { plotNo: '22',  sizeKey: '200b' },
-//   { plotNo: '23',  sizeKey: '200b' },
-//   { plotNo: '24',  sizeKey: '200b' },
-//   { plotNo: '25',  sizeKey: '200b' },
-//   { plotNo: '26',  sizeKey: '200b' },
-//   { plotNo: '27',  sizeKey: '200b' },
-//   { plotNo: '28',  sizeKey: '200b' },
-//   { plotNo: '29',  sizeKey: '200b' },
-//   { plotNo: '30',  sizeKey: '200b' },
-//   { plotNo: '31',  sizeKey: '200b' },
-//   { plotNo: '32',  sizeKey: '200b' },
-//   { plotNo: '33',  sizeKey: '200b' },
-//   { plotNo: '34',  sizeKey: '200b' },
-//   { plotNo: '35',  sizeKey: '200b' },
-//   { plotNo: '36',  sizeKey: '200b' },
-//   { plotNo: '37',  sizeKey: '200b' },
-//   { plotNo: '38',  sizeKey: '200b' },
-//   { plotNo: '39',  sizeKey: '200b' },
-//   { plotNo: '40',  sizeKey: '200b' },
-//   { plotNo: '41',  sizeKey: '200b' },
-//   { plotNo: '42',  sizeKey: '200b' },
-//   { plotNo: '43',  sizeKey: '200b' },
-//   { plotNo: '44',  sizeKey: '200b' },
-//   { plotNo: '45',  sizeKey: '200b' },
-//   { plotNo: '46',  sizeKey: '200b' },
-//   { plotNo: '47',  sizeKey: '200b' },
-//   { plotNo: '48',  sizeKey: '200b' },
-//   { plotNo: '49',  sizeKey: '200b' },
-//   { plotNo: '50',  sizeKey: '200b' },
-//   { plotNo: '51',  sizeKey: '200b' },
-//   { plotNo: '52',  sizeKey: '200b' },
-//   { plotNo: '53',  sizeKey: '200b' },
-//   { plotNo: '54',  sizeKey: '200b' },
-//   { plotNo: '55',  sizeKey: '200b' },
-//   { plotNo: '56',  sizeKey: '200b' },
-//   { plotNo: '57',  sizeKey: '200b' },
-//   { plotNo: '58',  sizeKey: '200b' },
-//   { plotNo: '59',  sizeKey: '200b' },
-//   { plotNo: '60',  sizeKey: '200b' },
-//   { plotNo: '61',  sizeKey: '200b' },
-//   { plotNo: '62',  sizeKey: '200b' },
-//   { plotNo: '63',  sizeKey: '200b' },
-//   { plotNo: '64',  sizeKey: '200b' },
-//   { plotNo: '65',  sizeKey: '200b' },
-//   { plotNo: '66',  sizeKey: '200b' },
-//   { plotNo: '67',  sizeKey: '200b' },
-//   { plotNo: '68',  sizeKey: '200b' },
-//   { plotNo: '69',  sizeKey: '200b' },
-//   { plotNo: '70',  sizeKey: '200b' },
-//   { plotNo: '71',  sizeKey: '200b' },
-//   { plotNo: '72',  sizeKey: '200b' },
-//   { plotNo: '73',  sizeKey: '200b' },
-//   { plotNo: '74',  sizeKey: '200b' },
-//   { plotNo: '75',  sizeKey: '200b' },
-//   { plotNo: '76',  sizeKey: '200b' },
-//   { plotNo: '77',  sizeKey: '200b' },
-//   { plotNo: '78',  sizeKey: '200b' },
-//   { plotNo: '79',  sizeKey: '200b' },
-//   { plotNo: '80',  sizeKey: '200b' },
-//   { plotNo: '81',  sizeKey: '200b' },
-//   { plotNo: '82',  sizeKey: '200b' },
-//   { plotNo: '83',  sizeKey: '200b' },
-//   { plotNo: '84',  sizeKey: '200b' },
-//   { plotNo: '85',  sizeKey: '200b' },
-//   { plotNo: '86',  sizeKey: '200b' },
-//   { plotNo: '87',  sizeKey: '200b' },
-//   { plotNo: '88',  sizeKey: '200b' },
-//   { plotNo: '89',  sizeKey: '200b' },
-//   { plotNo: '90',  sizeKey: '200b' },
-//   { plotNo: '91',  sizeKey: '200b' },
-//   { plotNo: '92',  sizeKey: '200b' },
-//   { plotNo: '93',  sizeKey: '200b' },
-//   { plotNo: '94',  sizeKey: '200b' },
-//   { plotNo: '95',  sizeKey: '200b' },
-//   { plotNo: '96',  sizeKey: '200b' },
-//   { plotNo: '97',  sizeKey: '200b' },
-//   { plotNo: '98',  sizeKey: '200b' },
-//   { plotNo: '99',  sizeKey: '200b' },
-//   { plotNo: '100', sizeKey: '200b' },
-//   { plotNo: '101', sizeKey: '200b' },
-//   { plotNo: '102', sizeKey: '200b' },
-//   { plotNo: '103', sizeKey: '200b' },
-//   { plotNo: '104', sizeKey: '200b' },
-//   { plotNo: '105', sizeKey: '200b' },
-//   { plotNo: '106', sizeKey: '200b' },
-//   { plotNo: '107', sizeKey: '200b' },
-//   { plotNo: '108', sizeKey: '200b' },
-//   { plotNo: '109', sizeKey: '200b' },
-//   { plotNo: '110', sizeKey: '200b' },
-//   { plotNo: '111', sizeKey: '200b' },
-//   { plotNo: '112', sizeKey: '200b' },
-//   { plotNo: '112A',sizeKey: '200b' },
-//   { plotNo: '113', sizeKey: '200b' },
-//   { plotNo: '114', sizeKey: '200b' },
-//   { plotNo: '115', sizeKey: '200b' },
-//   { plotNo: '116', sizeKey: '200b' },
-//   { plotNo: '117', sizeKey: '200b' },
-//   { plotNo: '118', sizeKey: '200b' },
-//   { plotNo: '119', sizeKey: '200b' },
-//   { plotNo: '120', sizeKey: '200b' },
-//   { plotNo: '121', sizeKey: '200b' },
-//   { plotNo: '122', sizeKey: '200b' },
-//   { plotNo: '123', sizeKey: '200b' },
-//   { plotNo: '124', sizeKey: '200b' },
-//   { plotNo: '125', sizeKey: '200b' },
-//   { plotNo: '126', sizeKey: '200b' },
-//   { plotNo: '127', sizeKey: '200b' },
-//   { plotNo: '128', sizeKey: '200b' },
-//   { plotNo: '129', sizeKey: '200b' },
-//   { plotNo: '130', sizeKey: '200b' },
-//   { plotNo: '131', sizeKey: '200b' },
-//   { plotNo: '132', sizeKey: '200b' },
-//   { plotNo: '133', sizeKey: '200b' },
-//   { plotNo: '134', sizeKey: '200b' },
-//   { plotNo: '135', sizeKey: '200b' },
-//   { plotNo: '136', sizeKey: '200b' },
-//   { plotNo: '137', sizeKey: '250a' },
-//   { plotNo: '138', sizeKey: '250a' },
-//   { plotNo: '139', sizeKey: '250a' },
-//   { plotNo: '140', sizeKey: '250a' },
-//   { plotNo: '141', sizeKey: '250a' },
-//   { plotNo: '142', sizeKey: '250a' },
-//   { plotNo: '143', sizeKey: '250a' },
-//   { plotNo: '144', sizeKey: '250a' },
-//   { plotNo: '145', sizeKey: '250a' },
-//   { plotNo: '146', sizeKey: '250a' },
-//   { plotNo: '147', sizeKey: '250a' },
-//   { plotNo: '148', sizeKey: '300' },
-//   { plotNo: '149', sizeKey: '300' },
-//   { plotNo: '150', sizeKey: '250a' },
-//   { plotNo: '151', sizeKey: '250a' },
-//   { plotNo: '152', sizeKey: '250a' },
-//   { plotNo: '153', sizeKey: '250a' },
-//   { plotNo: '154', sizeKey: '250a' },
-//   { plotNo: '155', sizeKey: '250a' },
-//   { plotNo: '156', sizeKey: '250a' },
-//   { plotNo: '157', sizeKey: '250a' },
-//   { plotNo: '158', sizeKey: '250a' },
-//   { plotNo: '159', sizeKey: '250a' },
-//   { plotNo: '160', sizeKey: '250a' },
-// ];
-
-// // ─────────────────────────────────────────────────────────────────────────────
-// // ORCHID — plots mapped one by one
-// // 01,34 → 200b
-// // 02–07 → 100 | 10–16 → 100 | 19–25 → 100 | 28–33 → 100
-// // 44–50 → 100 | 53–59 → 100 | 62–65 → 100 | 76,87 → 100
-// // 09,17,18,26,35,43,51,52,60,68,69,75,81,82,88,94,95 → 200b
-// // 70–73 → 150 | 77–80 → 150 | 83–86 → 150 | 90–93 → 150 | 96–99 → 150
-// // 61 → 166
-// // Odd (keep original): 08,12A,27,36–42,66,67,74,89
-// // 100+ keep original as in original seed
-// // ─────────────────────────────────────────────────────────────────────────────
-// const ORCHID_PLOTS = [
-//   { plotNo: '01',  sizeKey: '200b' },
-//   { plotNo: '02',  sizeKey: '100' },
-//   { plotNo: '03',  sizeKey: '100' },
-//   { plotNo: '04',  sizeKey: '100' },
-//   { plotNo: '05',  sizeKey: '100' },
-//   { plotNo: '06',  sizeKey: '100' },
-//   { plotNo: '07',  sizeKey: '100' },
-//   { plotNo: '08',  sizeKey: '300' },   // odd
-//   { plotNo: '09',  sizeKey: '200b' },
-//   { plotNo: '10',  sizeKey: '100' },
-//   { plotNo: '11',  sizeKey: '100' },
-//   { plotNo: '12',  sizeKey: '100' },
-//   { plotNo: '12A', sizeKey: '250b' },  // odd (original was 250b)
-//   { plotNo: '14',  sizeKey: '100' },
-//   { plotNo: '15',  sizeKey: '100' },
-//   { plotNo: '16',  sizeKey: '100' },
-//   { plotNo: '17',  sizeKey: '200b' },
-//   { plotNo: '18',  sizeKey: '200b' },
-//   { plotNo: '19',  sizeKey: '100' },
-//   { plotNo: '20',  sizeKey: '100' },
-//   { plotNo: '21',  sizeKey: '100' },
-//   { plotNo: '22',  sizeKey: '100' },
-//   { plotNo: '23',  sizeKey: '100' },
-//   { plotNo: '24',  sizeKey: '100' },
-//   { plotNo: '25',  sizeKey: '100' },
-//   { plotNo: '26',  sizeKey: '200b' },
-//   { plotNo: '27',  sizeKey: '300' },   // odd
-//   { plotNo: '28',  sizeKey: '100' },
-//   { plotNo: '29',  sizeKey: '100' },
-//   { plotNo: '30',  sizeKey: '100' },
-//   { plotNo: '31',  sizeKey: '100' },
-//   { plotNo: '32',  sizeKey: '100' },
-//   { plotNo: '33',  sizeKey: '100' },
-//   { plotNo: '34',  sizeKey: '200b' },
-//   { plotNo: '35',  sizeKey: '200b' },
-//   { plotNo: '36',  sizeKey: '150' },   // odd (original was 150)
-//   { plotNo: '37',  sizeKey: '150' },   // odd
-//   { plotNo: '38',  sizeKey: '150' },   // odd
-//   { plotNo: '39',  sizeKey: '150' },   // odd
-//   { plotNo: '40',  sizeKey: '150' },   // odd
-//   { plotNo: '41',  sizeKey: '150' },   // odd
-//   { plotNo: '42',  sizeKey: '150' },   // odd
-//   { plotNo: '43',  sizeKey: '200b' },
-//   { plotNo: '44',  sizeKey: '100' },
-//   { plotNo: '45',  sizeKey: '100' },
-//   { plotNo: '46',  sizeKey: '100' },
-//   { plotNo: '47',  sizeKey: '100' },
-//   { plotNo: '48',  sizeKey: '100' },
-//   { plotNo: '49',  sizeKey: '100' },
-//   { plotNo: '50',  sizeKey: '100' },
-//   { plotNo: '51',  sizeKey: '200b' },
-//   { plotNo: '52',  sizeKey: '200b' },
-//   { plotNo: '53',  sizeKey: '100' },
-//   { plotNo: '54',  sizeKey: '100' },
-//   { plotNo: '55',  sizeKey: '100' },
-//   { plotNo: '56',  sizeKey: '100' },
-//   { plotNo: '57',  sizeKey: '100' },
-//   { plotNo: '58',  sizeKey: '100' },
-//   { plotNo: '59',  sizeKey: '100' },
-//   { plotNo: '60',  sizeKey: '200b' },
-//   { plotNo: '61',  sizeKey: '166' },
-//   { plotNo: '62',  sizeKey: '100' },
-//   { plotNo: '63',  sizeKey: '100' },
-//   { plotNo: '64',  sizeKey: '100' },
-//   { plotNo: '65',  sizeKey: '100' },
-//   { plotNo: '66',  sizeKey: '150' },   // odd (original was 150)
-//   { plotNo: '67',  sizeKey: '150' },   // odd
-//   { plotNo: '68',  sizeKey: '200b' },
-//   { plotNo: '69',  sizeKey: '200b' },
-//   { plotNo: '70',  sizeKey: '150' },
-//   { plotNo: '71',  sizeKey: '150' },
-//   { plotNo: '72',  sizeKey: '150' },
-//   { plotNo: '73',  sizeKey: '150' },
-//   { plotNo: '74',  sizeKey: '200b' },  // odd (original was 200b)
-//   { plotNo: '75',  sizeKey: '200b' },
-//   { plotNo: '76',  sizeKey: '100' },
-//   { plotNo: '77',  sizeKey: '150' },
-//   { plotNo: '78',  sizeKey: '150' },
-//   { plotNo: '79',  sizeKey: '150' },
-//   { plotNo: '80',  sizeKey: '150' },
-//   { plotNo: '81',  sizeKey: '200b' },
-//   { plotNo: '82',  sizeKey: '200b' },
-//   { plotNo: '83',  sizeKey: '150' },
-//   { plotNo: '84',  sizeKey: '150' },
-//   { plotNo: '85',  sizeKey: '150' },
-//   { plotNo: '86',  sizeKey: '150' },
-//   { plotNo: '87',  sizeKey: '100' },
-//   { plotNo: '88',  sizeKey: '200b' },
-//   { plotNo: '89',  sizeKey: '200b' },  // odd (original was 200b)
-//   { plotNo: '90',  sizeKey: '150' },
-//   { plotNo: '91',  sizeKey: '150' },
-//   { plotNo: '92',  sizeKey: '150' },
-//   { plotNo: '93',  sizeKey: '150' },
-//   { plotNo: '94',  sizeKey: '200b' },
-//   { plotNo: '95',  sizeKey: '200b' },
-//   { plotNo: '96',  sizeKey: '150' },
-//   { plotNo: '97',  sizeKey: '150' },
-//   { plotNo: '98',  sizeKey: '150' },
-//   { plotNo: '99',  sizeKey: '150' },
-//   // 100+ — keep original
-//   { plotNo: '100', sizeKey: '300' },
-//   { plotNo: '101', sizeKey: '300' },
-//   { plotNo: '102', sizeKey: '135' },
-//   { plotNo: '103', sizeKey: '135' },
-//   { plotNo: '104', sizeKey: '135' },
-//   { plotNo: '105', sizeKey: '135' },
-//   { plotNo: '106', sizeKey: '135' },
-//   { plotNo: '107', sizeKey: '135' },
-//   { plotNo: '108', sizeKey: '135' },
-//   { plotNo: '109', sizeKey: '135' },
-//   { plotNo: '110', sizeKey: '135' },
-//   { plotNo: '111', sizeKey: '135' },
-//   { plotNo: '112', sizeKey: '135' },
-//   { plotNo: '113', sizeKey: '135' },
-//   { plotNo: '114', sizeKey: '300' },
-//   { plotNo: '115', sizeKey: '300' },
-//   { plotNo: '116', sizeKey: '250b' },
-//   { plotNo: '117', sizeKey: '135' },
-//   { plotNo: '118', sizeKey: '135' },
-//   { plotNo: '119', sizeKey: '135' },
-//   { plotNo: '120', sizeKey: '135' },
-//   { plotNo: '121', sizeKey: '250b' },
-//   { plotNo: '122', sizeKey: '250b' },
-//   { plotNo: '123', sizeKey: '250b' },
-//   { plotNo: '124', sizeKey: '250b' },
-//   { plotNo: '125', sizeKey: '250b' },
-//   { plotNo: '126', sizeKey: '250b' },
-//   { plotNo: '127', sizeKey: '250b' },
-//   { plotNo: '128', sizeKey: '300' },
-//   { plotNo: '129', sizeKey: '200b' },
-//   { plotNo: '130', sizeKey: '200b' },
-//   { plotNo: '131', sizeKey: '200b' },
-//   { plotNo: '132', sizeKey: '200b' },
-//   { plotNo: '133', sizeKey: '200b' },
-//   { plotNo: '134', sizeKey: '200b' },
-//   { plotNo: '135', sizeKey: '200b' },
-//   { plotNo: '136', sizeKey: '200b' },
-//   { plotNo: '137', sizeKey: '200b' },
-//   { plotNo: '138', sizeKey: '200b' },
-//   { plotNo: '139', sizeKey: '200b' },
-//   { plotNo: '140', sizeKey: '200b' },
-//   { plotNo: '141', sizeKey: '200b' },
-//   { plotNo: '142', sizeKey: '200b' },
-//   { plotNo: '143', sizeKey: '200b' },
-//   { plotNo: '144', sizeKey: '200b' },
-//   { plotNo: '145', sizeKey: '200b' },
-//   { plotNo: '146', sizeKey: '200b' },
-//   { plotNo: '147', sizeKey: '300' },
-//   { plotNo: '148', sizeKey: '250b' },
-//   { plotNo: '149', sizeKey: '250b' },
-//   { plotNo: '150', sizeKey: '250b' },
-//   { plotNo: '151', sizeKey: '250b' },
-//   { plotNo: '152', sizeKey: '250b' },
-//   { plotNo: '153', sizeKey: '250b' },
-//   { plotNo: '154', sizeKey: '250b' },
-//   { plotNo: '155', sizeKey: '200b' },
-//   { plotNo: '156', sizeKey: '200b' },
-//   { plotNo: '157', sizeKey: '200b' },
-//   { plotNo: '158', sizeKey: '200b' },
-//   { plotNo: '159', sizeKey: '200b' },
-//   { plotNo: '160', sizeKey: '200b' },
-//   { plotNo: '161', sizeKey: '200b' },
-//   { plotNo: '162', sizeKey: '300' },
-//   { plotNo: '163', sizeKey: '200b' },
-//   { plotNo: '164', sizeKey: '200b' },
-//   { plotNo: '165', sizeKey: '200b' },
-//   { plotNo: '166', sizeKey: '200b' },
-//   { plotNo: '167', sizeKey: '200b' },
-//   { plotNo: '168', sizeKey: '200b' },
-//   { plotNo: '169', sizeKey: '200b' },
-//   { plotNo: '170', sizeKey: '200b' },
-//   { plotNo: '171', sizeKey: '200b' },
-//   { plotNo: '172', sizeKey: '200b' },
-//   { plotNo: '173', sizeKey: '200b' },
-//   { plotNo: '174', sizeKey: '200b' },
-//   { plotNo: '175', sizeKey: '200b' },
-//   { plotNo: '176', sizeKey: '200b' },
-//   { plotNo: '177', sizeKey: '200b' },
-//   { plotNo: '178', sizeKey: '200b' },
-//   { plotNo: '179', sizeKey: '200b' },
-//   { plotNo: '180', sizeKey: '200b' },
-//   { plotNo: '181', sizeKey: '300' },
-//   { plotNo: '182', sizeKey: '200b' },
-//   { plotNo: '183', sizeKey: '200b' },
-//   { plotNo: '184', sizeKey: '200b' },
-//   { plotNo: '185', sizeKey: '200b' },
-//   { plotNo: '186', sizeKey: '200b' },
-//   { plotNo: '187', sizeKey: '200b' },
-//   { plotNo: '188', sizeKey: '200b' },
-//   { plotNo: '189', sizeKey: '150' },
-//   { plotNo: '190', sizeKey: '150' },
-//   { plotNo: '191', sizeKey: '150' },
-//   { plotNo: '192', sizeKey: '150' },
-//   { plotNo: '193', sizeKey: '150' },
-//   { plotNo: '194', sizeKey: '150' },
-//   { plotNo: '195', sizeKey: '150' },
-//   { plotNo: '196', sizeKey: '150' },
-//   { plotNo: '197', sizeKey: '150' },
-//   { plotNo: '198', sizeKey: '150' },
-//   { plotNo: '199', sizeKey: '150' },
-//   { plotNo: '200', sizeKey: '150' },
-//   { plotNo: '201', sizeKey: '150' },
-//   { plotNo: '202', sizeKey: '150' },
-//   { plotNo: '203', sizeKey: '150' },
-//   { plotNo: '204', sizeKey: '150' },
-//   { plotNo: '205', sizeKey: '150' },
-//   { plotNo: '206', sizeKey: '150' },
-//   { plotNo: '207', sizeKey: '150' },
-//   { plotNo: '208', sizeKey: '150' },
-// ];
-
-// // ─────────────────────────────────────────────────────────────────────────────
-// // BLUEBELL — plots mapped one by one
-// // 01–19 (incl 12A) → 253 | 20–29 → 200b
-// // 30,35,36,47,52,53,64,69,70,82,87,88 → 250a
-// // 31–34 → 135 | 37–45 → 135 | 48–51 → 135 | 54–62 → 135
-// // 65–68 → 135 | 71–80 → 135 | 83–86 → 135 | 89–98 → 135
-// // 100–118 → 180 | 120–131 → 180
-// // 132–153 → 253 | 154–170 → 253
-// // 176,177 → 135
-// // Odd: 46,63,81 → 300 | 99,119 → 300 | 171–175,178,179 → 300
-// // ─────────────────────────────────────────────────────────────────────────────
-// const BLUEBELL_PLOTS = [
-//   { plotNo: '01',  sizeKey: '253' },
-//   { plotNo: '02',  sizeKey: '253' },
-//   { plotNo: '03',  sizeKey: '253' },
-//   { plotNo: '04',  sizeKey: '253' },
-//   { plotNo: '05',  sizeKey: '253' },
-//   { plotNo: '06',  sizeKey: '253' },
-//   { plotNo: '07',  sizeKey: '253' },
-//   { plotNo: '08',  sizeKey: '253' },
-//   { plotNo: '09',  sizeKey: '253' },
-//   { plotNo: '10',  sizeKey: '253' },
-//   { plotNo: '11',  sizeKey: '253' },
-//   { plotNo: '12',  sizeKey: '253' },
-//   { plotNo: '12A', sizeKey: '253' },
-//   { plotNo: '14',  sizeKey: '253' },
-//   { plotNo: '15',  sizeKey: '253' },
-//   { plotNo: '16',  sizeKey: '253' },
-//   { plotNo: '17',  sizeKey: '253' },
-//   { plotNo: '18',  sizeKey: '253' },
-//   { plotNo: '19',  sizeKey: '253' },
-//   { plotNo: '20',  sizeKey: '200b' },
-//   { plotNo: '21',  sizeKey: '200b' },
-//   { plotNo: '22',  sizeKey: '200b' },
-//   { plotNo: '23',  sizeKey: '200b' },
-//   { plotNo: '24',  sizeKey: '200b' },
-//   { plotNo: '25',  sizeKey: '200b' },
-//   { plotNo: '26',  sizeKey: '200b' },
-//   { plotNo: '27',  sizeKey: '200b' },
-//   { plotNo: '28',  sizeKey: '200b' },
-//   { plotNo: '29',  sizeKey: '200b' },
-//   { plotNo: '30',  sizeKey: '250a' },
-//   { plotNo: '31',  sizeKey: '135' },
-//   { plotNo: '32',  sizeKey: '135' },
-//   { plotNo: '33',  sizeKey: '135' },
-//   { plotNo: '34',  sizeKey: '135' },
-//   { plotNo: '35',  sizeKey: '250a' },
-//   { plotNo: '36',  sizeKey: '250a' },
-//   { plotNo: '37',  sizeKey: '135' },
-//   { plotNo: '38',  sizeKey: '135' },
-//   { plotNo: '39',  sizeKey: '135' },
-//   { plotNo: '40',  sizeKey: '135' },
-//   { plotNo: '41',  sizeKey: '135' },
-//   { plotNo: '42',  sizeKey: '135' },
-//   { plotNo: '43',  sizeKey: '135' },
-//   { plotNo: '44',  sizeKey: '135' },
-//   { plotNo: '45',  sizeKey: '135' },
-//   { plotNo: '46',  sizeKey: '300' },   // odd
-//   { plotNo: '47',  sizeKey: '250a' },
-//   { plotNo: '48',  sizeKey: '135' },
-//   { plotNo: '49',  sizeKey: '135' },
-//   { plotNo: '50',  sizeKey: '135' },
-//   { plotNo: '51',  sizeKey: '135' },
-//   { plotNo: '52',  sizeKey: '250a' },
-//   { plotNo: '53',  sizeKey: '250a' },
-//   { plotNo: '54',  sizeKey: '135' },
-//   { plotNo: '55',  sizeKey: '135' },
-//   { plotNo: '56',  sizeKey: '135' },
-//   { plotNo: '57',  sizeKey: '135' },
-//   { plotNo: '58',  sizeKey: '135' },
-//   { plotNo: '59',  sizeKey: '135' },
-//   { plotNo: '60',  sizeKey: '135' },
-//   { plotNo: '61',  sizeKey: '135' },
-//   { plotNo: '62',  sizeKey: '135' },
-//   { plotNo: '63',  sizeKey: '300' },   // odd
-//   { plotNo: '64',  sizeKey: '250a' },
-//   { plotNo: '65',  sizeKey: '135' },
-//   { plotNo: '66',  sizeKey: '135' },
-//   { plotNo: '67',  sizeKey: '135' },
-//   { plotNo: '68',  sizeKey: '135' },
-//   { plotNo: '69',  sizeKey: '250a' },
-//   { plotNo: '70',  sizeKey: '250a' },
-//   { plotNo: '71',  sizeKey: '135' },
-//   { plotNo: '72',  sizeKey: '135' },
-//   { plotNo: '73',  sizeKey: '135' },
-//   { plotNo: '74',  sizeKey: '135' },
-//   { plotNo: '75',  sizeKey: '135' },
-//   { plotNo: '76',  sizeKey: '135' },
-//   { plotNo: '77',  sizeKey: '135' },
-//   { plotNo: '78',  sizeKey: '135' },
-//   { plotNo: '79',  sizeKey: '135' },
-//   { plotNo: '80',  sizeKey: '135' },
-//   { plotNo: '81',  sizeKey: '300' },   // odd
-//   { plotNo: '82',  sizeKey: '250a' },
-//   { plotNo: '83',  sizeKey: '135' },
-//   { plotNo: '84',  sizeKey: '135' },
-//   { plotNo: '85',  sizeKey: '135' },
-//   { plotNo: '86',  sizeKey: '135' },
-//   { plotNo: '87',  sizeKey: '250a' },
-//   { plotNo: '88',  sizeKey: '250a' },
-//   { plotNo: '89',  sizeKey: '135' },
-//   { plotNo: '90',  sizeKey: '135' },
-//   { plotNo: '91',  sizeKey: '135' },
-//   { plotNo: '92',  sizeKey: '135' },
-//   { plotNo: '93',  sizeKey: '135' },
-//   { plotNo: '94',  sizeKey: '135' },
-//   { plotNo: '95',  sizeKey: '135' },
-//   { plotNo: '96',  sizeKey: '135' },
-//   { plotNo: '97',  sizeKey: '135' },
-//   { plotNo: '98',  sizeKey: '135' },
-//   { plotNo: '99',  sizeKey: '300' },   // odd
-//   { plotNo: '100', sizeKey: '180' },
-//   { plotNo: '101', sizeKey: '180' },
-//   { plotNo: '102', sizeKey: '180' },
-//   { plotNo: '103', sizeKey: '180' },
-//   { plotNo: '104', sizeKey: '180' },
-//   { plotNo: '105', sizeKey: '180' },
-//   { plotNo: '106', sizeKey: '180' },
-//   { plotNo: '107', sizeKey: '180' },
-//   { plotNo: '108', sizeKey: '180' },
-//   { plotNo: '109', sizeKey: '180' },
-//   { plotNo: '110', sizeKey: '180' },
-//   { plotNo: '111', sizeKey: '180' },
-//   { plotNo: '112', sizeKey: '180' },
-//   { plotNo: '113', sizeKey: '180' },
-//   { plotNo: '114', sizeKey: '180' },
-//   { plotNo: '115', sizeKey: '180' },
-//   { plotNo: '116', sizeKey: '180' },
-//   { plotNo: '117', sizeKey: '180' },
-//   { plotNo: '118', sizeKey: '180' },
-//   { plotNo: '119', sizeKey: '300' },   // odd
-//   { plotNo: '120', sizeKey: '180' },
-//   { plotNo: '121', sizeKey: '180' },
-//   { plotNo: '122', sizeKey: '180' },
-//   { plotNo: '123', sizeKey: '180' },
-//   { plotNo: '124', sizeKey: '180' },
-//   { plotNo: '125', sizeKey: '180' },
-//   { plotNo: '126', sizeKey: '180' },
-//   { plotNo: '127', sizeKey: '180' },
-//   { plotNo: '128', sizeKey: '180' },
-//   { plotNo: '129', sizeKey: '180' },
-//   { plotNo: '130', sizeKey: '180' },
-//   { plotNo: '131', sizeKey: '180' },
-//   { plotNo: '132', sizeKey: '253' },
-//   { plotNo: '133', sizeKey: '253' },
-//   { plotNo: '134', sizeKey: '253' },
-//   { plotNo: '135', sizeKey: '253' },
-//   { plotNo: '136', sizeKey: '253' },
-//   { plotNo: '137', sizeKey: '253' },
-//   { plotNo: '138', sizeKey: '253' },
-//   { plotNo: '139', sizeKey: '253' },
-//   { plotNo: '140', sizeKey: '253' },
-//   { plotNo: '141', sizeKey: '253' },
-//   { plotNo: '142', sizeKey: '253' },
-//   { plotNo: '143', sizeKey: '253' },
-//   { plotNo: '144', sizeKey: '253' },
-//   { plotNo: '145', sizeKey: '253' },
-//   { plotNo: '146', sizeKey: '253' },
-//   { plotNo: '147', sizeKey: '253' },
-//   { plotNo: '148', sizeKey: '253' },
-//   { plotNo: '149', sizeKey: '253' },
-//   { plotNo: '150', sizeKey: '253' },
-//   { plotNo: '151', sizeKey: '253' },
-//   { plotNo: '152', sizeKey: '253' },
-//   { plotNo: '153', sizeKey: '253' },
-//   { plotNo: '154', sizeKey: '253' },
-//   { plotNo: '155', sizeKey: '253' },
-//   { plotNo: '156', sizeKey: '253' },
-//   { plotNo: '157', sizeKey: '253' },
-//   { plotNo: '158', sizeKey: '253' },
-//   { plotNo: '159', sizeKey: '253' },
-//   { plotNo: '160', sizeKey: '253' },
-//   { plotNo: '161', sizeKey: '253' },
-//   { plotNo: '162', sizeKey: '253' },
-//   { plotNo: '163', sizeKey: '253' },
-//   { plotNo: '164', sizeKey: '253' },
-//   { plotNo: '165', sizeKey: '253' },
-//   { plotNo: '166', sizeKey: '253' },
-//   { plotNo: '167', sizeKey: '253' },
-//   { plotNo: '168', sizeKey: '253' },
-//   { plotNo: '169', sizeKey: '253' },
-//   { plotNo: '170', sizeKey: '253' },
-//   { plotNo: '171', sizeKey: '300' },   // odd
-//   { plotNo: '172', sizeKey: '300' },   // odd
-//   { plotNo: '173', sizeKey: '300' },   // odd
-//   { plotNo: '174', sizeKey: '300' },   // odd
-//   { plotNo: '175', sizeKey: '300' },   // odd
-//   { plotNo: '176', sizeKey: '135' },
-//   { plotNo: '177', sizeKey: '135' },
-//   { plotNo: '178', sizeKey: '300' },   // odd
-//   { plotNo: '179', sizeKey: '300' },   // odd
-// ];
-
-// // ─────────────────────────────────────────────────────────────────────────────
-// // SUNFLOWER — plots mapped one by one
-// // 01–08 → 250a | 11,21,22 → 250a
-// // 12–20 (incl 12A) → 135 | 23,24 → 135
-// // 26,36,37,43,53,54,61,71,72,83,93,94 → 250a
-// // 27–35 → 135 | 38–42 → 135 | 44–52 → 135 | 55–59 → 135
-// // 62–70 → 135 | 73–81 → 135 | 84–92 → 135 | 95–103 → 135
-// // 105,115,116,127,137,138,149,159,160,171,181,182,193,203,204,215,225,226 → 300
-// // 106–114 → 200b | 117–125 → 200b | 128–136 → 200b | 139–147 → 200b
-// // 150–158 → 200b | 161–169 → 200b | 172–180 → 200b | 183–191 → 200b
-// // 194–202 → 200b | 205–212,212A → 200b | 216–224 → 200b | 227–235 → 200b
-// // Odd: 09,10,25 → 250a | 60,82 → 300 | 104 → 250a | 112A → 200b
-// //      126,148,170,192,214,236 → 300 | 213 is actually 212A → 200b
-// // ─────────────────────────────────────────────────────────────────────────────
-// const SUNFLOWER_PLOTS = [
-//   { plotNo: '01',  sizeKey: '250a' },
-//   { plotNo: '02',  sizeKey: '250a' },
-//   { plotNo: '03',  sizeKey: '250a' },
-//   { plotNo: '04',  sizeKey: '250a' },
-//   { plotNo: '05',  sizeKey: '250a' },
-//   { plotNo: '06',  sizeKey: '250a' },
-//   { plotNo: '07',  sizeKey: '250a' },
-//   { plotNo: '08',  sizeKey: '250a' },
-//   { plotNo: '09',  sizeKey: '250a' },   // odd (original was 250a)
-//   { plotNo: '10',  sizeKey: '250a' },   // odd (original was 250a)
-//   { plotNo: '11',  sizeKey: '250a' },
-//   { plotNo: '12',  sizeKey: '135' },
-//   { plotNo: '12A', sizeKey: '135' },
-//   { plotNo: '14',  sizeKey: '135' },
-//   { plotNo: '15',  sizeKey: '135' },
-//   { plotNo: '16',  sizeKey: '135' },
-//   { plotNo: '17',  sizeKey: '135' },
-//   { plotNo: '18',  sizeKey: '135' },
-//   { plotNo: '19',  sizeKey: '135' },
-//   { plotNo: '20',  sizeKey: '135' },
-//   { plotNo: '21',  sizeKey: '250a' },
-//   { plotNo: '22',  sizeKey: '250a' },
-//   { plotNo: '23',  sizeKey: '135' },
-//   { plotNo: '24',  sizeKey: '135' },
-//   { plotNo: '25',  sizeKey: '250a' },   // odd (original was 250a)
-//   { plotNo: '26',  sizeKey: '250a' },
-//   { plotNo: '27',  sizeKey: '135' },
-//   { plotNo: '28',  sizeKey: '135' },
-//   { plotNo: '29',  sizeKey: '135' },
-//   { plotNo: '30',  sizeKey: '135' },
-//   { plotNo: '31',  sizeKey: '135' },
-//   { plotNo: '32',  sizeKey: '135' },
-//   { plotNo: '33',  sizeKey: '135' },
-//   { plotNo: '34',  sizeKey: '135' },
-//   { plotNo: '35',  sizeKey: '135' },
-//   { plotNo: '36',  sizeKey: '250a' },
-//   { plotNo: '37',  sizeKey: '250a' },
-//   { plotNo: '38',  sizeKey: '135' },
-//   { plotNo: '39',  sizeKey: '135' },
-//   { plotNo: '40',  sizeKey: '135' },
-//   { plotNo: '41',  sizeKey: '135' },
-//   { plotNo: '42',  sizeKey: '135' },
-//   { plotNo: '43',  sizeKey: '250a' },
-//   { plotNo: '44',  sizeKey: '135' },
-//   { plotNo: '45',  sizeKey: '135' },
-//   { plotNo: '46',  sizeKey: '135' },
-//   { plotNo: '47',  sizeKey: '135' },
-//   { plotNo: '48',  sizeKey: '135' },
-//   { plotNo: '49',  sizeKey: '135' },
-//   { plotNo: '50',  sizeKey: '135' },
-//   { plotNo: '51',  sizeKey: '135' },
-//   { plotNo: '52',  sizeKey: '135' },
-//   { plotNo: '53',  sizeKey: '250a' },
-//   { plotNo: '54',  sizeKey: '250a' },
-//   { plotNo: '55',  sizeKey: '135' },
-//   { plotNo: '56',  sizeKey: '135' },
-//   { plotNo: '57',  sizeKey: '135' },
-//   { plotNo: '58',  sizeKey: '135' },
-//   { plotNo: '59',  sizeKey: '135' },
-//   { plotNo: '60',  sizeKey: '300' },   // odd
-//   { plotNo: '61',  sizeKey: '250a' },
-//   { plotNo: '62',  sizeKey: '135' },
-//   { plotNo: '63',  sizeKey: '135' },
-//   { plotNo: '64',  sizeKey: '135' },
-//   { plotNo: '65',  sizeKey: '135' },
-//   { plotNo: '66',  sizeKey: '135' },
-//   { plotNo: '67',  sizeKey: '135' },
-//   { plotNo: '68',  sizeKey: '135' },
-//   { plotNo: '69',  sizeKey: '135' },
-//   { plotNo: '70',  sizeKey: '135' },
-//   { plotNo: '71',  sizeKey: '250a' },
-//   { plotNo: '72',  sizeKey: '250a' },
-//   { plotNo: '73',  sizeKey: '135' },
-//   { plotNo: '74',  sizeKey: '135' },
-//   { plotNo: '75',  sizeKey: '135' },
-//   { plotNo: '76',  sizeKey: '135' },
-//   { plotNo: '77',  sizeKey: '135' },
-//   { plotNo: '78',  sizeKey: '135' },
-//   { plotNo: '79',  sizeKey: '135' },
-//   { plotNo: '80',  sizeKey: '135' },
-//   { plotNo: '81',  sizeKey: '135' },
-//   { plotNo: '82',  sizeKey: '300' },   // odd
-//   { plotNo: '83',  sizeKey: '250a' },
-//   { plotNo: '84',  sizeKey: '135' },
-//   { plotNo: '85',  sizeKey: '135' },
-//   { plotNo: '86',  sizeKey: '135' },
-//   { plotNo: '87',  sizeKey: '135' },
-//   { plotNo: '88',  sizeKey: '135' },
-//   { plotNo: '89',  sizeKey: '135' },
-//   { plotNo: '90',  sizeKey: '135' },
-//   { plotNo: '91',  sizeKey: '135' },
-//   { plotNo: '92',  sizeKey: '135' },
-//   { plotNo: '93',  sizeKey: '250a' },
-//   { plotNo: '94',  sizeKey: '250a' },
-//   { plotNo: '95',  sizeKey: '135' },
-//   { plotNo: '96',  sizeKey: '135' },
-//   { plotNo: '97',  sizeKey: '135' },
-//   { plotNo: '98',  sizeKey: '135' },
-//   { plotNo: '99',  sizeKey: '135' },
-//   { plotNo: '100', sizeKey: '135' },
-//   { plotNo: '101', sizeKey: '135' },
-//   { plotNo: '102', sizeKey: '135' },
-//   { plotNo: '103', sizeKey: '135' },
-//   { plotNo: '104', sizeKey: '250a' },  // odd (original was 250a)
-//   { plotNo: '105', sizeKey: '300' },
-//   { plotNo: '106', sizeKey: '200b' },
-//   { plotNo: '107', sizeKey: '200b' },
-//   { plotNo: '108', sizeKey: '200b' },
-//   { plotNo: '109', sizeKey: '200b' },
-//   { plotNo: '110', sizeKey: '200b' },
-//   { plotNo: '111', sizeKey: '200b' },
-//   { plotNo: '112', sizeKey: '200b' },
-//   { plotNo: '112A',sizeKey: '200b' },  // odd (original was 200b) — user confirmed 213→212A
-//   { plotNo: '113', sizeKey: '200b' },
-//   { plotNo: '114', sizeKey: '200b' },
-//   { plotNo: '115', sizeKey: '300' },
-//   { plotNo: '116', sizeKey: '300' },
-//   { plotNo: '117', sizeKey: '200b' },
-//   { plotNo: '118', sizeKey: '200b' },
-//   { plotNo: '119', sizeKey: '200b' },
-//   { plotNo: '120', sizeKey: '200b' },
-//   { plotNo: '121', sizeKey: '200b' },
-//   { plotNo: '122', sizeKey: '200b' },
-//   { plotNo: '123', sizeKey: '200b' },
-//   { plotNo: '124', sizeKey: '200b' },
-//   { plotNo: '125', sizeKey: '200b' },
-//   { plotNo: '126', sizeKey: '300' },   // odd
-//   { plotNo: '127', sizeKey: '300' },
-//   { plotNo: '128', sizeKey: '200b' },
-//   { plotNo: '129', sizeKey: '200b' },
-//   { plotNo: '130', sizeKey: '200b' },
-//   { plotNo: '131', sizeKey: '200b' },
-//   { plotNo: '132', sizeKey: '200b' },
-//   { plotNo: '133', sizeKey: '200b' },
-//   { plotNo: '134', sizeKey: '200b' },
-//   { plotNo: '135', sizeKey: '200b' },
-//   { plotNo: '136', sizeKey: '200b' },
-//   { plotNo: '137', sizeKey: '300' },
-//   { plotNo: '138', sizeKey: '300' },
-//   { plotNo: '139', sizeKey: '200b' },
-//   { plotNo: '140', sizeKey: '200b' },
-//   { plotNo: '141', sizeKey: '200b' },
-//   { plotNo: '142', sizeKey: '200b' },
-//   { plotNo: '143', sizeKey: '200b' },
-//   { plotNo: '144', sizeKey: '200b' },
-//   { plotNo: '145', sizeKey: '200b' },
-//   { plotNo: '146', sizeKey: '200b' },
-//   { plotNo: '147', sizeKey: '200b' },
-//   { plotNo: '148', sizeKey: '300' },   // odd
-//   { plotNo: '149', sizeKey: '300' },
-//   { plotNo: '150', sizeKey: '200b' },
-//   { plotNo: '151', sizeKey: '200b' },
-//   { plotNo: '152', sizeKey: '200b' },
-//   { plotNo: '153', sizeKey: '200b' },
-//   { plotNo: '154', sizeKey: '200b' },
-//   { plotNo: '155', sizeKey: '200b' },
-//   { plotNo: '156', sizeKey: '200b' },
-//   { plotNo: '157', sizeKey: '200b' },
-//   { plotNo: '158', sizeKey: '200b' },
-//   { plotNo: '159', sizeKey: '300' },
-//   { plotNo: '160', sizeKey: '300' },
-//   { plotNo: '161', sizeKey: '200b' },
-//   { plotNo: '162', sizeKey: '200b' },
-//   { plotNo: '163', sizeKey: '200b' },
-//   { plotNo: '164', sizeKey: '200b' },
-//   { plotNo: '165', sizeKey: '200b' },
-//   { plotNo: '166', sizeKey: '200b' },
-//   { plotNo: '167', sizeKey: '200b' },
-//   { plotNo: '168', sizeKey: '200b' },
-//   { plotNo: '169', sizeKey: '200b' },
-//   { plotNo: '170', sizeKey: '300' },   // odd
-//   { plotNo: '171', sizeKey: '300' },
-//   { plotNo: '172', sizeKey: '200b' },
-//   { plotNo: '173', sizeKey: '200b' },
-//   { plotNo: '174', sizeKey: '200b' },
-//   { plotNo: '175', sizeKey: '200b' },
-//   { plotNo: '176', sizeKey: '200b' },
-//   { plotNo: '177', sizeKey: '200b' },
-//   { plotNo: '178', sizeKey: '200b' },
-//   { plotNo: '179', sizeKey: '200b' },
-//   { plotNo: '180', sizeKey: '200b' },
-//   { plotNo: '181', sizeKey: '300' },
-//   { plotNo: '182', sizeKey: '300' },
-//   { plotNo: '183', sizeKey: '200b' },
-//   { plotNo: '184', sizeKey: '200b' },
-//   { plotNo: '185', sizeKey: '200b' },
-//   { plotNo: '186', sizeKey: '200b' },
-//   { plotNo: '187', sizeKey: '200b' },
-//   { plotNo: '188', sizeKey: '200b' },
-//   { plotNo: '189', sizeKey: '200b' },
-//   { plotNo: '190', sizeKey: '200b' },
-//   { plotNo: '191', sizeKey: '200b' },
-//   { plotNo: '192', sizeKey: '300' },   // odd
-//   { plotNo: '193', sizeKey: '300' },
-//   { plotNo: '194', sizeKey: '200b' },
-//   { plotNo: '195', sizeKey: '200b' },
-//   { plotNo: '196', sizeKey: '200b' },
-//   { plotNo: '197', sizeKey: '200b' },
-//   { plotNo: '198', sizeKey: '200b' },
-//   { plotNo: '199', sizeKey: '200b' },
-//   { plotNo: '200', sizeKey: '200b' },
-//   { plotNo: '201', sizeKey: '200b' },
-//   { plotNo: '202', sizeKey: '200b' },
-//   { plotNo: '203', sizeKey: '300' },
-//   { plotNo: '204', sizeKey: '300' },
-//   { plotNo: '205', sizeKey: '200b' },
-//   { plotNo: '206', sizeKey: '200b' },
-//   { plotNo: '207', sizeKey: '200b' },
-//   { plotNo: '208', sizeKey: '200b' },
-//   { plotNo: '209', sizeKey: '200b' },
-//   { plotNo: '210', sizeKey: '200b' },
-//   { plotNo: '211', sizeKey: '200b' },
-//   { plotNo: '212', sizeKey: '200b' },
-//   { plotNo: '212A',sizeKey: '200b' },  // user confirmed 213 is actually 212A
-//   { plotNo: '214', sizeKey: '300' },   // odd
-//   { plotNo: '215', sizeKey: '300' },
-//   { plotNo: '216', sizeKey: '200b' },
-//   { plotNo: '217', sizeKey: '200b' },
-//   { plotNo: '218', sizeKey: '200b' },
-//   { plotNo: '219', sizeKey: '200b' },
-//   { plotNo: '220', sizeKey: '200b' },
-//   { plotNo: '221', sizeKey: '200b' },
-//   { plotNo: '222', sizeKey: '200b' },
-//   { plotNo: '223', sizeKey: '200b' },
-//   { plotNo: '224', sizeKey: '200b' },
-//   { plotNo: '225', sizeKey: '300' },
-//   { plotNo: '226', sizeKey: '300' },
-//   { plotNo: '227', sizeKey: '200b' },
-//   { plotNo: '228', sizeKey: '200b' },
-//   { plotNo: '229', sizeKey: '200b' },
-//   { plotNo: '230', sizeKey: '200b' },
-//   { plotNo: '231', sizeKey: '200b' },
-//   { plotNo: '232', sizeKey: '200b' },
-//   { plotNo: '233', sizeKey: '200b' },
-//   { plotNo: '234', sizeKey: '200b' },
-//   { plotNo: '235', sizeKey: '200b' },
-//   { plotNo: '236', sizeKey: '300' },   // odd
-// ];
-
-// // ── Amenities ─────────────────────────────────────────────────────────────────
-// const AMENITY_DATA = [
-//   { label: 'School',          area: '1400 Sq.Yd', projectId: PROJECT_ID },
-//   { label: 'Flower Park',     area: '827 Sq.Yd',  projectId: PROJECT_ID },
-//   { label: 'Fruit Park',      area: '1200 Sq.Yd', projectId: PROJECT_ID },
-//   { label: 'Children Park 1', area: '2504 Sq.Yd', projectId: PROJECT_ID },
-//   { label: 'Children Park 2', area: '1910 Sq.Yd', projectId: PROJECT_ID },
-//   { label: 'Party Hall',      area: '727 Sq.Yd',  projectId: PROJECT_ID },
-//   { label: 'Party Lawn',      area: '2000 Sq.Yd', projectId: PROJECT_ID },
-//   { label: 'Temple',          area: '',           projectId: PROJECT_ID },
-//   { label: 'Park 1',          area: '1150 Sq.Yd', projectId: PROJECT_ID },
-//   { label: 'Park 2',          area: '1050 Sq.Yd', projectId: PROJECT_ID },
-//   { label: 'Park 3',          area: '823 Sq.Yd',  projectId: PROJECT_ID },
-//   { label: 'SCO-1',           area: '',           projectId: PROJECT_ID },
-//   { label: 'SCO-2',           area: '',           projectId: PROJECT_ID },
-//   { label: 'SCO-3',           area: '',           projectId: PROJECT_ID },
-//   { label: 'SCO-4',           area: '',           projectId: PROJECT_ID },
-//   { label: 'SCO-5',           area: '',           projectId: PROJECT_ID },
-//   { label: 'SCO-6',           area: '',           projectId: PROJECT_ID },
-// ];
-
-// const SECTOR_NAMES = ['BLUEBELL', 'SUNFLOWER', 'ORCHID', 'SAFFRON', 'LOTUS', 'ASTER', 'TULIP'];
-// const FACINGS = ['North', 'East', 'South', 'West'];
-
-// // ── Build plot documents from each sector array ───────────────────────────────
-// function buildPlotDocs(sectorPlots, sectorName) {
-//   return sectorPlots.map(({ plotNo, sizeKey }, i) => ({
-//     plotNo,
-//     sector:         sectorName,
-//     projectId:      PROJECT_ID,
-//     area:           SIZES[sizeKey].area,
-//     dimensions:     SIZES[sizeKey].dimensions,
-//     facing:         FACINGS[i % 4],
-//     corner:         false,
-//     pricePerSqYard: 55000,
-//     status:         'available',
-//     notes:          '',
-//     heldByName:     '',
-//     heldById:       '',
-//     holdUntil:      null,
-//   }));
-// }
-
-// const plotDocuments = [
-//   ...buildPlotDocs(BLUEBELL_PLOTS,  'BLUEBELL'),
-//   ...buildPlotDocs(SUNFLOWER_PLOTS, 'SUNFLOWER'),
-//   ...buildPlotDocs(ORCHID_PLOTS,    'ORCHID'),
-//   ...buildPlotDocs(SAFFRON_PLOTS,   'SAFFRON'),
-//   ...buildPlotDocs(LOTUS_PLOTS,     'LOTUS'),
-//   ...buildPlotDocs(ASTER_PLOTS,     'ASTER'),
-//   ...buildPlotDocs(TULIP_PLOTS,     'TULIP'),
-// ];
-
-// // ── Run seed ──────────────────────────────────────────────────────────────────
-// await mongoose.connect(MONGODB_URI);
-// console.log('✅ Connected to MongoDB');
-
-// await Sector.deleteMany({ projectId: PROJECT_ID });
-// await Amenity.deleteMany({ projectId: PROJECT_ID });
-// await Plot.deleteMany({ projectId: PROJECT_ID });
-// console.log('🗑️  Cleared old data for this project');
-
-// await Sector.insertMany(SECTOR_NAMES.map(name => ({ name, projectId: PROJECT_ID })));
-// console.log(`✅ Seeded ${SECTOR_NAMES.length} sectors`);
-
-// await Amenity.insertMany(AMENITY_DATA);
-// console.log(`✅ Seeded ${AMENITY_DATA.length} amenities`);
-
-// const inserted = await Plot.insertMany(plotDocuments);
-// console.log(`✅ Seeded ${inserted.length} plots`);
-
-// console.log('\n📊 Plots per sector:');
-// const summary = inserted.reduce((acc, p) => {
-//   acc[p.sector] = (acc[p.sector] || 0) + 1;
-//   return acc;
-// }, {});
-// Object.entries(summary).forEach(([s, c]) => console.log(`   ${s.padEnd(12)} → ${c}`));
-
-// console.log('\n📐 Size breakdown per sector:');
-// const sizeSummary = inserted.reduce((acc, p) => {
-//   if (!acc[p.sector]) acc[p.sector] = {};
-//   const key = `${p.area} sq.yd (${p.dimensions})`;
-//   acc[p.sector][key] = (acc[p.sector][key] || 0) + 1;
-//   return acc;
-// }, {});
-// Object.entries(sizeSummary).forEach(([sector, sizes]) => {
-//   console.log(`   ${sector}:`);
-//   Object.entries(sizes).sort((a, b) => b[0].localeCompare(a[0])).forEach(([size, cnt]) =>
-//     console.log(`      ${size} × ${cnt}`)
-//   );
-// });
-
-// console.log(`\n   TOTAL: ${inserted.length} plots`);
-// await mongoose.disconnect();
-// console.log('✅ Done.');
-
-
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Plot from '../models/Plot.js';
@@ -1268,137 +9,216 @@ dotenv.config({ path: '.env.local' });
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) throw new Error('MONGODB_URI not set in .env.local');
 
-// ── NEW PROJECT ONLY — old project is NOT touched ─────────────────────────────
-const PROJECT_ID = new mongoose.Types.ObjectId('69ef23146c6c847a5914e9dd');
+// ── NEW PROJECT ONLY — all other projects are NOT touched ─────────────────────
+const PROJECT_ID = new mongoose.Types.ObjectId('69f1b82ee5f36ab88e6996c9');
 
-// ── Area calculator: length × width × 1.208 ──────────────────────────────────
-function calcArea(l, w) {
-  return parseFloat((l * w * 1.208).toFixed(2));
-}
+const SECTOR_NAMES = ['RESIDENTIAL HAUTE'];
 
-// ── COMMERCIAL PLOTS (C01–C48) ────────────────────────────────────────────────
-// C1        → 20×21.36
-// C10       → 20×18.36  (only plot 10)
-// C11       → 20×15.12  (only plot 11)
-// C20       → 20×20     (only plot 20)
-// C34       → 20×14.11  (only plot 34)
-// All else  → 20×12.54
+// ── Plot data extracted from layout screenshots ───────────────────────────────
+// Dimensions format: "W x D" for rectangles, "W1 x W2 x D" for trapezoids,
+// "W1 x W2 x D1 x D2" for irregular quads
+// Area is in sq.yd as shown in the layout drawings
+// ─────────────────────────────────────────────────────────────────────────────
 
-function getCommercialDims(n) {
-  if (n === 1)  return [20, 21.36];
-  if (n === 10) return [20, 18.36];
-  if (n === 11) return [20, 15.12];
-  if (n === 20) return [20, 20.00];
-  if (n === 34) return [20, 14.11];
-  return [20, 12.54];
-}
+const RESIDENTIAL_PLOTS = [
+  // ── Image 1 — top block ───────────────────────────────────────────────────
+  { plotNo: '001',  area: 247.40, dimensions: "46'-7½\" x 20'-8\" x 70'-10½\"" },   // trapezoid (irregular left boundary)
+  { plotNo: '010',  area: 265.00, dimensions: "35' x 67'-2\""                  },   // rectangle
+  { plotNo: '021',  area: 200.00, dimensions: "45' x 40'"                      },
+  { plotNo: '022',  area: 153.00, dimensions: "45'-1\" x 29'-3½\" x 31'-11½\"" },   // trapezoid
+  { plotNo: '023',  area: 173.18, dimensions: "45'-1\" x 33'-3½\" x 31'-11½\"" },   // trapezoid
+  { plotNo: '024',  area: 200.00, dimensions: "45' x 40'"                      },
+  { plotNo: '035',  area: 200.00, dimensions: "45' x 40'"                      },
+  { plotNo: '036',  area: 186.66, dimensions: "45'-1\" x 38'-8\" x 31'-11½\"" },    // trapezoid
 
-const COMMERCIAL_PLOTS = [];
-for (let i = 1; i <= 48; i++) {
-  const [l, w] = getCommercialDims(i);
-  COMMERCIAL_PLOTS.push({
-    plotNo:         String(i).padStart(2, '0'),
-    sector:         'COMMERCIAL',
-    projectId:      PROJECT_ID,
-    area:           calcArea(l, w),
-    dimensions:     `${l}'x${w}'`,
-    facing:         ['North', 'East', 'South', 'West'][i % 4],
-    corner:         false,
-    pricePerSqYard: i <= 20 ? 15000 : 12000,
-    status:         'available',
-    notes:          '',
-    heldByName:     '',
-    heldById:       '',
-    holdUntil:      null,
-  });
-}
+  // ── Image 9 — diagonal road block (plots 2–9) ─────────────────────────────
+  { plotNo: '002',  area: 222.53, dimensions: "42'-2½\" x 57'-11½\" x 40'"    },    // trapezoid
+  { plotNo: '003',  area: 295.20, dimensions: "43'-5½\" x 45' x 40'"          },    // trapezoid
+  { plotNo: '004',  area: 170.94, dimensions: "43'-6\" x 47'-0½\" x 40'"      },    // trapezoid
+  { plotNo: '005',  area: 247.15, dimensions: "43'-6\" x 64'-1½\" x 40'"      },    // trapezoid
+  { plotNo: '006',  area: 328.15, dimensions: "44'-1\" x 81'-6\" x 40'"       },    // trapezoid
+  { plotNo: '007',  area: 203.48, dimensions: "45'-0½\" x 40'-7½\""           },    // rectangle
+  { plotNo: '008',  area: 200.00, dimensions: "45' x 40'"                     },
+  { plotNo: '009',  area: 200.00, dimensions: "45' x 40'"                     },
 
-// ── RESIDENTIAL PLOTS (001–611) ───────────────────────────────────────────────
-// Special single plots / groups:
-const SPECIAL_10x12   = new Set([32,33,80,81,124,125,186,187,230,231,274,275,332,333,394,395,483,484,545,546,582]);
-const SPECIAL_12x12   = new Set([18,19,38,39,66,67,94,95,118,119,138,139,172,173,192,193,216,217,244,245,268,269,346,347,380,381,400,401,424,425,453,454,477,478,497,498,531,532,551,552,568,569]);
-const SPECIAL_12x868  = new Set([1, 46]);
-const SPECIAL_12x1625 = new Set([50, 111]);
-const SPECIAL_12x1547 = new Set([112, 155]);
-const SPECIAL_12x1390 = new Set([200, 261]);
-const SPECIAL_12x1312 = new Set([262, 303]);
-const SPECIAL_15x1207 = new Set([364, 407]);
-const SPECIAL_12x105  = new Set([408, 470]);
-const SPECIAL_12x972  = new Set([471, 514]);
-const SPECIAL_12x896  = new Set([515, 558]);
-// 583 to 611 → 17.76×8.36 (range)
+  // ── Image 8 — block 11–20 ─────────────────────────────────────────────────
+  { plotNo: '011',  area: 300.00, dimensions: "45' x 60'"                     },
+  { plotNo: '012',  area: 200.00, dimensions: "45' x 40'"                     },
+  { plotNo: '013',  area: 200.00, dimensions: "45' x 40'"                     },
+  { plotNo: '014',  area: 150.00, dimensions: "45' x 30'"                     },
+  { plotNo: '015',  area: 154.00, dimensions: "45' x 30'-8\""                 },
+  { plotNo: '016',  area: 154.00, dimensions: "45' x 30'-10\""                },
+  { plotNo: '017',  area: 150.00, dimensions: "45' x 30'"                     },
+  { plotNo: '018',  area: 200.00, dimensions: "45' x 40'"                     },
+  { plotNo: '019',  area: 200.00, dimensions: "45' x 40'"                     },
+  { plotNo: '020',  area: 300.00, dimensions: "45' x 60'"                     },
 
-function getResidentialDims(n) {
-  if (SPECIAL_12x868.has(n))  return [12, 8.68];
-  if (SPECIAL_12x1625.has(n)) return [12, 16.255];
-  if (SPECIAL_12x1547.has(n)) return [12, 15.47];
-  if (SPECIAL_12x1390.has(n)) return [12, 13.90];
-  if (SPECIAL_12x1312.has(n)) return [12, 13.12];
-  if (SPECIAL_15x1207.has(n)) return [15, 12.07];
-  if (SPECIAL_12x105.has(n))  return [12, 10.5];
-  if (SPECIAL_12x972.has(n))  return [12, 9.72];
-  if (SPECIAL_12x896.has(n))  return [12, 8.96];
-  if (n >= 583 && n <= 611)   return [17.76, 8.36];
-  if (SPECIAL_10x12.has(n))   return [10.5, 12];
-  if (SPECIAL_12x12.has(n))   return [12, 12];
-  return [12, 8.36]; // default
-}
+  // ── Image 7 — block 25–34 ─────────────────────────────────────────────────
+  { plotNo: '025',  area: 351.94, dimensions: "45' x 70'-2½\""                },
+  { plotNo: '026',  area: 200.00, dimensions: "45' x 40'"                     },
+  { plotNo: '027',  area: 150.00, dimensions: "45' x 30'"                     },
+  { plotNo: '028',  area: 150.00, dimensions: "45' x 30'"                     },
+  { plotNo: '029',  area: 153.00, dimensions: "45' x 30'-7\""                 },
+  { plotNo: '030',  area: 103.50, dimensions: "45' x 20'-7\""                 },
+  { plotNo: '031',  area: 100.00, dimensions: "45' x 20'"                     },
+  { plotNo: '032',  area: 100.00, dimensions: "45' x 20'"                     },
+  { plotNo: '033',  area: 150.00, dimensions: "45' x 30'"                     },
+  { plotNo: '034',  area: 200.00, dimensions: "45' x 40'"                     },
 
-const RESIDENTIAL_PLOTS = [];
-for (let i = 1; i <= 611; i++) {
-  const [l, w] = getResidentialDims(i);
-  RESIDENTIAL_PLOTS.push({
-    plotNo:         String(i).padStart(3, '0'),
-    sector:         'RESIDENTIAL',
-    projectId:      PROJECT_ID,
-    area:           calcArea(l, w),
-    dimensions:     `${l}'x${w}'`,
-    facing:         ['North', 'East', 'South', 'West'][i % 4],
-    corner:         false,
-    pricePerSqYard: 7500,
-    status:         'available',
-    notes:          '',
-    heldByName:     '',
-    heldById:       '',
-    holdUntil:      null,
-  });
-}
+  // ── Image 12 — block 37–56 ────────────────────────────────────────────────
+  { plotNo: '037',  area: 107.83, dimensions: "45'-1\" x 20'-2½\""            },
+  { plotNo: '038',  area: 150.00, dimensions: "45'-1\" x 30'"                 },
+  { plotNo: '039',  area: 150.00, dimensions: "45'-1\" x 30'"                 },
+  { plotNo: '040',  area: 150.00, dimensions: "45'-1\" x 30'"                 },
+  { plotNo: '041',  area: 200.00, dimensions: "45'-1\" x 40'"                 },
+  { plotNo: '052',  area: 200.00, dimensions: "45'-1\" x 40'"                 },
+  { plotNo: '053',  area: 150.00, dimensions: "45'-1\" x 30'"                 },
+  { plotNo: '054',  area: 150.00, dimensions: "45'-1\" x 30'"                 },
+  { plotNo: '055',  area: 150.00, dimensions: "45'-1\" x 30'"                 },
+  { plotNo: '056',  area: 113.00, dimensions: "34'-7\" x 18'-6½\" x 22'-0\""  },   // trapezoid
 
-// ── Amenities ─────────────────────────────────────────────────────────────────
-const AMENITY_DATA = [
-  { label: 'Common Plot 04',  area: '66.88 Sq.Mt', projectId: PROJECT_ID },
-  { label: 'Common Plot 05',  area: '66.88 Sq.Mt', projectId: PROJECT_ID },
-  { label: 'Common Plot 06',  area: '66.88 Sq.Mt', projectId: PROJECT_ID },
-  { label: 'Common Plot 07',  area: '66.88 Sq.Mt', projectId: PROJECT_ID },
-  { label: 'Common Plot 08',  area: '66.88 Sq.Mt', projectId: PROJECT_ID },
-  { label: 'Common Plot 09',  area: '83.60 Sq.Mt', projectId: PROJECT_ID },
-  { label: 'Common Plot 10',  area: '66.88 Sq.Mt', projectId: PROJECT_ID },
-  { label: 'Common Plot 11',  area: '66.88 Sq.Mt', projectId: PROJECT_ID },
-  { label: 'Common Plot 12',  area: '83.60 Sq.Mt', projectId: PROJECT_ID },
-  { label: 'Common Plot 13',  area: '83.60 Sq.Mt', projectId: PROJECT_ID },
-  { label: 'Common Plot 14',  area: '66.88 Sq.Mt', projectId: PROJECT_ID },
-];
+  // ── Image 6 — block 42–51 ─────────────────────────────────────────────────
+  { plotNo: '042',  area: 200.00, dimensions: "45' x 40'"                     },
+  { plotNo: '043',  area: 150.00, dimensions: "45' x 30'"                     },
+  { plotNo: '044',  area: 100.00, dimensions: "45' x 20'"                     },
+  { plotNo: '045',  area: 100.00, dimensions: "45' x 20'"                     },
+  { plotNo: '046',  area: 103.50, dimensions: "45' x 20'-7\""                 },
+  { plotNo: '047',  area: 103.50, dimensions: "45' x 20'-8½\""                },
+  { plotNo: '048',  area: 100.00, dimensions: "45' x 20'"                     },
+  { plotNo: '049',  area: 100.00, dimensions: "45' x 20'"                     },
+  { plotNo: '050',  area: 150.00, dimensions: "45' x 30'"                     },
+  { plotNo: '051',  area: 200.00, dimensions: "45' x 40'"                     },
 
-const SECTOR_NAMES = ['COMMERCIAL', 'RESIDENTIAL'];
+  // ── Image 10 — block 57–62 & 73–78 ───────────────────────────────────────
+  { plotNo: '057',  area: 104.60, dimensions: "45'-1\" x 24'-6½\" x 10'-9½\"" },   // trapezoid (corner)
+  { plotNo: '058',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '059',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '060',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '061',  area: 150.00, dimensions: "45'-1\" x 30'"                 },
+  { plotNo: '062',  area: 200.00, dimensions: "45'-1\" x 39'-6\""             },
+  { plotNo: '073',  area: 200.00, dimensions: "45'-1\" x 39'-6\""             },
+  { plotNo: '074',  area: 150.00, dimensions: "45'-1\" x 30'"                 },
+  { plotNo: '075',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '076',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '077',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '078',  area: 116.65, dimensions: "45'-1\" x 24'-6½\" x 10'-0½\"" },   // trapezoid (corner)
+
+  // ── Image 5 — block 63–72 ─────────────────────────────────────────────────
+  { plotNo: '063',  area: 200.00, dimensions: "45' x 40'"                     },
+  { plotNo: '064',  area: 150.00, dimensions: "45' x 30'"                     },
+  { plotNo: '065',  area: 100.00, dimensions: "45' x 20'"                     },
+  { plotNo: '066',  area: 100.00, dimensions: "45' x 20'"                     },
+  { plotNo: '067',  area: 104.72, dimensions: "45' x 20'-10\""                },
+  { plotNo: '068',  area: 105.81, dimensions: "45' x 21'-4\""                 },
+  { plotNo: '069',  area: 100.00, dimensions: "45' x 20'"                     },
+  { plotNo: '070',  area: 100.00, dimensions: "45' x 20'"                     },
+  { plotNo: '071',  area: 150.00, dimensions: "45' x 30'"                     },
+  { plotNo: '072',  area: 200.00, dimensions: "45' x 40'"                     },
+
+  // ── Image 11 — block 79–93 ────────────────────────────────────────────────
+  { plotNo: '079',  area: 107.11, dimensions: "45'-1\" x 19'-11½\" x 10'-0½\"" },  // trapezoid (corner)
+  { plotNo: '080',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '081',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '082',  area: 130.00, dimensions: "45'-1\" x 26'"                 },
+  { plotNo: '083',  area: 150.00, dimensions: "45'-1\" x 30'"                 },
+  { plotNo: '084',  area: 200.00, dimensions: "45'-1\" x 40'"                 },
+  { plotNo: '085',  area: 334.00, dimensions: "45' x 66'-9½\""                },
+  { plotNo: '086',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '087',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '088',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '089',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '090',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '091',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '092',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '093',  area: 101.95, dimensions: "45'-1\" x 21'-10½\" x 10'-½\"" },   // trapezoid (corner)
+
+  // ── Image 3 — block 94–117 ────────────────────────────────────────────────
+  { plotNo: '094',  area: 108.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '095',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '096',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '097',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '098',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '099',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '100',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '101',  area: 100.00, dimensions: "45'-1\" x 20'"                 },
+  { plotNo: '102',  area: 150.00, dimensions: "45'-1\" x 30'"                 },
+  { plotNo: '103',  area: 200.00, dimensions: "45'-1\" x 40'"                 },
+  { plotNo: '111',  area: 180.00, dimensions: "40'-6\" x 40'"                 },
+  { plotNo: '112',  area: 134.33, dimensions: "40'-5\" x 30'"                 },
+  { plotNo: '113',  area: 111.39, dimensions: "40'-2½\" x 25'"               },
+  { plotNo: '114',  area: 111.39, dimensions: "40' x 25'"                    },
+  { plotNo: '115',  area: 111.39, dimensions: "39'-10\" x 25'"               },
+  { plotNo: '116',  area: 23.16,  dimensions: "34'-9\" x 28'-7\" x 35'"      },    // small trapezoid/triangle
+  { plotNo: '117',  area: 120.00, dimensions: "43'-1\" x 45'-2\" x 20'-9\""  },    // trapezoid
+
+  // ── Image 4 — block 104–110 ───────────────────────────────────────────────
+  { plotNo: '104',  area: 215.62, dimensions: "30' x 64'-7½\" x 67'-1\""     },    // slight trapezoid
+  { plotNo: '105',  area: 216.00, dimensions: "30' x 64'-9\""                },
+  { plotNo: '106',  area: 216.31, dimensions: "30' x 64'-10\""               },
+  { plotNo: '107',  area: 216.62, dimensions: "30' x 64'-11½\""              },
+  { plotNo: '108',  area: 216.94, dimensions: "30' x 65'-0½\""               },
+  { plotNo: '109',  area: 170.81, dimensions: "47'-0½\" x 32'-8½\""          },
+  { plotNo: '110',  area: 170.81, dimensions: "47'-3½\" x 32'-7\""           },
+].map((p, i) => ({
+  ...p,
+  sector:         'RESIDENTIAL HAUTE',
+  projectId:      PROJECT_ID,
+  facing:         ['North', 'East', 'South', 'West'][i % 4],
+  corner:         false,
+  pricePerSqYard: 30000,
+  status:         'available',
+  notes:          '',
+  heldByName:     '',
+  heldById:       '',
+  holdUntil:      null,
+}));
 
 // ── Run seed ──────────────────────────────────────────────────────────────────
 await mongoose.connect(MONGODB_URI);
 console.log('✅ Connected to MongoDB');
 
-// ⚠️  Only delete data for THIS project — old project is untouched
+// ⚠️  Only delete data for THIS project — all other projects are untouched
 await Sector.deleteMany({ projectId: PROJECT_ID });
-await Amenity.deleteMany({ projectId: PROJECT_ID });
 await Plot.deleteMany({ projectId: PROJECT_ID });
-console.log('🗑️  Cleared old data for Haute World City project only');
+console.log('🗑️  Cleared old data for this project only');
 
-await Sector.insertMany(SECTOR_NAMES.map(name => ({ name, projectId: PROJECT_ID })));
-console.log(`✅ Seeded ${SECTOR_NAMES.length} sectors`);
+for (const name of SECTOR_NAMES) {
+  const existing = await Sector.findOne({ name, projectId: PROJECT_ID });
+  if (!existing) {
+    try {
+      await Sector.create({ name, projectId: PROJECT_ID });
+      console.log(`✅ Created sector: ${name}`);
+    } catch (e) {
+      if (e.code === 11000) {
+        console.log(`⚠️  Sector "${name}" already exists in another project — skipping (index conflict). Plots will still seed correctly.`);
+      } else {
+        throw e;
+      }
+    }
+  } else {
+    console.log(`✅ Sector "${name}" already exists for this project — skipping.`);
+  }
+}
+console.log(`✅ Sector seeding done`);
 
-await Amenity.insertMany(AMENITY_DATA);
-console.log(`✅ Seeded ${AMENITY_DATA.length} amenities`);
-
-const allPlots = [...COMMERCIAL_PLOTS, ...RESIDENTIAL_PLOTS];
-const inserted = await Plot.insertMany(allPlots);
+// Use upsert per plot to avoid duplicate key on plotNo+sector index
+const inserted = [];
+for (const plot of RESIDENTIAL_PLOTS) {
+  try {
+    const doc = await Plot.findOneAndUpdate(
+      { plotNo: plot.plotNo, sector: plot.sector, projectId: plot.projectId },
+      { $set: plot },
+      { upsert: true, new: true }
+    );
+    inserted.push(doc);
+  } catch (e) {
+    if (e.code === 11000) {
+      console.log(`⚠️  Plot ${plot.plotNo} duplicate — skipping`);
+    } else {
+      throw e;
+    }
+  }
+}
 console.log(`✅ Seeded ${inserted.length} plots`);
 
 console.log('\n📊 Plots per sector:');
@@ -1408,20 +228,16 @@ const summary = inserted.reduce((acc, p) => {
 }, {});
 Object.entries(summary).forEach(([s, c]) => console.log(`   ${s.padEnd(15)} → ${c}`));
 
-console.log('\n📐 Size breakdown per sector:');
+console.log('\n📐 Size breakdown:');
 const sizeSummary = inserted.reduce((acc, p) => {
-  if (!acc[p.sector]) acc[p.sector] = {};
   const key = `${p.area} sq.yd (${p.dimensions})`;
-  acc[p.sector][key] = (acc[p.sector][key] || 0) + 1;
+  acc[key] = (acc[key] || 0) + 1;
   return acc;
 }, {});
-Object.entries(sizeSummary).forEach(([sector, sizes]) => {
-  console.log(`   ${sector}:`);
-  Object.entries(sizes).sort().forEach(([size, cnt]) =>
-    console.log(`      ${size} × ${cnt}`)
-  );
-});
+Object.entries(sizeSummary).sort().forEach(([size, cnt]) =>
+  console.log(`   ${size} × ${cnt}`)
+);
 
 console.log(`\n   TOTAL: ${inserted.length} plots`);
 await mongoose.disconnect();
-console.log('✅ Done. Old project data is untouched.');
+console.log('✅ Done. All other projects are untouched.');

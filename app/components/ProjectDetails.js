@@ -102,7 +102,7 @@ const lockedCity      = searchParams.get('city')         || '';
   const activePLCOption = isCustomPLC ? (customPLCValue ? `${customPLCValue}%` : '') : (data.plc || '');
   const plcAmount = calcPLC(bsp, activePLCOption);
   const devCharge = calcDevCharge(data.plotSize);
-  const hasClubMembership = data.projectName !== 'Haute World City';
+  const hasClubMembership = data.projectName === 'Expressway Residency';
   const totalCost = bsp + plcAmount + (hasClubMembership ? CLUB_MEMBERSHIP : 0) + devCharge;
 
   const fmt = (num) =>
@@ -111,7 +111,7 @@ const lockedCity      = searchParams.get('city')         || '';
   const validate = (fields) => {
     const errs = {};
     if (!fields.projectName) errs.projectName = 'Project name is required';
-    if (!fields.city || !fields.city.trim()) errs.city = 'City is required';
+    if (!fields.city || !fields.city.trim()) errs.city = 'Location is required';
     if (!fields.plotNo || !fields.plotNo.trim()) errs.plotNo = 'Plot no. is required';
     if (!fields.pricePerSqYard || parseFloat(fields.pricePerSqYard) <= 0)
       errs.pricePerSqYard = 'Enter a valid price per square yard';
@@ -219,14 +219,14 @@ const lockedCity      = searchParams.get('city')         || '';
         {/* City */}
         <div>
           <label style={labelStyle}>
-            City <span style={{ color: '#dc2626' }}>*</span>
+            Location <span style={{ color: '#dc2626' }}>*</span>
             {data.projectName && PROJECT_CITY_MAP[data.projectName] && (
               <span style={{ fontSize: '0.65rem', color: 'var(--gold)', fontWeight: 500, marginLeft: 6, textTransform: 'none', letterSpacing: 0 }}>auto-filled</span>
             )}
           </label>
           <input
             type="text"
-            placeholder="e.g. Noida, Gurgaon"
+            placeholder="e.g. Ghaziabad, Gujarat"
             value={data.city || ''}
             onChange={(e) => handleChange('city', e.target.value)}
             onBlur={() => handleBlur('city')}

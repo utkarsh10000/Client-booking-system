@@ -222,80 +222,110 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Project cards grid */}
+         {/* Project cards grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 18 }}>
-            {projects.map(project => (
-              <button
-                key={project._id}
-                onClick={() => router.push(`/layout/${project.slug}`)}
-                style={{
-                  background: 'var(--white)', border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-lg)', padding: '26px 24px',
-                  cursor: 'pointer', textAlign: 'left',
-                  boxShadow: 'var(--shadow)', transition: 'all var(--transition)',
-                  position: 'relative', overflow: 'hidden'
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-5px)';
-                  e.currentTarget.style.boxShadow = '0 12px 48px rgba(26,74,58,0.16)';
-                  e.currentTarget.style.borderColor = 'var(--gold)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'var(--shadow)';
-                  e.currentTarget.style.borderColor = 'rgba(201,144,26,0.2)';
-                }}
-              >
-                {/* Top accent bar */}
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'var(--gold)', opacity: 0.5 }} />
+            {projects.map(project => {
+              const imageMap = {
+                'Haute Grand City':     '/assets/haute-grand-city.png',
+                'Haute World City':     '/assets/hgc.png',
+                'Expressway Residency': '/assets/expressway-residency.png',
+              };
+              const cardImage = imageMap[project.name] || null;
 
-                {/* Icon */}
-                <div style={{
-                  width: 44, height: 44, background: 'var(--forest-dark)',
-                  borderRadius: 10, display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', marginBottom: 16
-                }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold-pale)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                    <polyline points="9 22 9 12 15 12 15 22"/>
-                  </svg>
-                </div>
+              return (
+                <button
+                  key={project._id}
+                  onClick={() => router.push(`/layout/${project.slug}`)}
+                  style={{
+                    background: 'var(--white)', border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-lg)', padding: 0,
+                    cursor: 'pointer', textAlign: 'left',
+                    boxShadow: 'var(--shadow)', transition: 'all var(--transition)',
+                    position: 'relative', overflow: 'hidden',
+                    display: 'flex', flexDirection: 'column'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-5px)';
+                    e.currentTarget.style.boxShadow = '0 12px 48px rgba(26,74,58,0.16)';
+                    e.currentTarget.style.borderColor = 'var(--gold)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow)';
+                    e.currentTarget.style.borderColor = 'rgba(201,144,26,0.2)';
+                  }}
+                >
 
-                {/* Name */}
-                <div style={{
-                  fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600,
-                  color: 'var(--charcoal)', marginBottom: 6, lineHeight: 1.2
-                }}>{project.name}</div>
-
-                {/* Location */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--gray)', marginBottom: 18 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                    <circle cx="12" cy="10" r="3"/>
-                  </svg>
-                  {project.location}
-                </div>
-
-                {/* CTA row */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  paddingTop: 16, borderTop: '1px solid var(--border)'
-                }}>
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, color: 'var(--gold)',
-                    letterSpacing: '0.14em', textTransform: 'uppercase'
-                  }}>View Layout</span>
+                 {/* Image or dark placeholder */}
                   <div style={{
-                    width: 28, height: 28, borderRadius: '50%',
-                    border: '1.5px solid rgba(201,144,26,0.35)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--gold)'
+                    width: '100%', height: 220, overflow: 'hidden',
+                    background: 'var(--forest-dark)', position: 'relative', flexShrink: 0
                   }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    {cardImage ? (
+                      <img
+                        src={cardImage}
+                        alt={project.name}
+                       style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.5s ease' }}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                        onError={e => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(201,144,26,0.3)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                          <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                      </div>
+                    )}
+                    {/* Gradient overlay */}
+                    <div style={{
+                      position: 'absolute', bottom: 0, left: 0, right: 0, height: 48,
+                      background: 'linear-gradient(to top, rgba(13,47,36,0.55), transparent)'
+                    }} />
                   </div>
-                </div>
-              </button>
-            ))}
+
+                  {/* Card body */}
+                  <div style={{ padding: '18px 20px 20px', flex: 1 }}>
+                    {/* Name */}
+                    <div style={{
+                      fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600,
+                      color: 'var(--charcoal)', marginBottom: 6, lineHeight: 1.2
+                    }}>{project.name}</div>
+
+                    {/* Location */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--gray)', marginBottom: 18 }}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                      </svg>
+                      {project.location}
+                    </div>
+
+                    {/* CTA row */}
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      paddingTop: 14, borderTop: '1px solid var(--border)'
+                    }}>
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, color: 'var(--gold)',
+                        letterSpacing: '0.14em', textTransform: 'uppercase'
+                      }}>View Layout</span>
+                      <div style={{
+                        width: 28, height: 28, borderRadius: '50%',
+                        border: '1.5px solid rgba(201,144,26,0.35)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: 'var(--gold)'
+                      }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 

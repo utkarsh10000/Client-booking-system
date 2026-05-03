@@ -1,7 +1,7 @@
 'use client';
 
 export default function SuccessScreen({ formData, onReset }) {
-  const { project, personal, payment } = formData;
+  const { project, personal, payment, clientId } = formData;
 
   const fmt = (num) =>
     num?.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) || '0';
@@ -14,10 +14,7 @@ export default function SuccessScreen({ formData, onReset }) {
       overflow: 'hidden',
       marginBottom: '1.2rem',
     }}>
-      <div style={{
-        background: 'linear-gradient(135deg, var(--forest-dark), var(--forest))',
-        padding: '0.9rem 1.4rem',
-      }}>
+      <div style={{ background: 'linear-gradient(135deg, var(--forest-dark), var(--forest))', padding: '0.9rem 1.4rem' }}>
         <p style={{ fontSize: '0.72rem', fontFamily: 'var(--font-body)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold-pale)', margin: 0 }}>{title}</p>
       </div>
       <div style={{ padding: '1.4rem' }}>{children}</div>
@@ -58,9 +55,51 @@ export default function SuccessScreen({ formData, onReset }) {
       </div>
 
       <h3 style={{ color: 'var(--forest)', marginBottom: '0.4rem' }}>Registration Successful</h3>
-      <p style={{ fontSize: '0.9rem', color: 'var(--gray)', marginBottom: '2rem', fontFamily: 'var(--font-body)' }}>
+      <p style={{ fontSize: '0.9rem', color: 'var(--gray)', marginBottom: '1.6rem', fontFamily: 'var(--font-body)' }}>
         Client registration has been submitted. Below is the summary.
       </p>
+
+      {/* Client ID — prominent display */}
+      {clientId && (
+        <div style={{
+          background: 'linear-gradient(135deg, var(--forest-dark), var(--forest))',
+          borderRadius: 'var(--radius-lg)',
+          padding: '1.6rem 2rem',
+          marginBottom: '1.6rem',
+          textAlign: 'center',
+          boxShadow: '0 8px 32px rgba(26,74,58,0.2)',
+        }}>
+          <p style={{
+            fontSize: '0.68rem',
+            fontFamily: 'var(--font-body)',
+            fontWeight: 700,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: 'var(--gold-pale)',
+            margin: '0 0 0.5rem',
+          }}>
+            Client ID
+          </p>
+          <p style={{
+            fontSize: '2rem',
+            fontFamily: 'monospace',
+            fontWeight: 700,
+            color: 'var(--white)',
+            letterSpacing: '4px',
+            margin: '0 0 0.5rem',
+          }}>
+            {clientId}
+          </p>
+          <p style={{
+            fontSize: '0.75rem',
+            color: 'rgba(255,255,255,0.5)',
+            fontFamily: 'var(--font-body)',
+            margin: 0,
+          }}>
+            This ID has been sent to the client via email and saved in the sheet
+          </p>
+        </div>
+      )}
 
       {/* Project Summary */}
       <SectionCard title="Project Summary">
@@ -69,25 +108,21 @@ export default function SuccessScreen({ formData, onReset }) {
           ['City',               project?.city],
           ['Plot No.',           project?.plotNo],
           ['Plot Size',          `${project?.plotSize} sq. yards`],
-          ['Price / sq.yd',      `₹ ${fmt(parseFloat(project?.pricePerSqYard))}`],
-          ['BSP',                `₹ ${fmt(project?.bsp)}`],
+          ['Price / sq.yd',      `Rs ${fmt(parseFloat(project?.pricePerSqYard))}`],
+          ['BSP',                `Rs ${fmt(project?.bsp)}`],
           ['PLC',                project?.plc || 'N/A'],
-          ['PLC Amount',         `₹ ${fmt(project?.plcAmount)}`],
-          ['Club Membership',    '₹ 1,00,000'],
-          ['Development Charge', `₹ ${fmt(project?.devCharge)}`],
+          ['PLC Amount',         `Rs ${fmt(project?.plcAmount)}`],
+          ['Club Membership',    'Rs 1,00,000'],
+          ['Development Charge', `Rs ${fmt(project?.devCharge)}`],
         ]} />
 
         <div style={{
-          marginTop: '1.2rem',
-          paddingTop: '1.2rem',
-          borderTop: '1px solid var(--border)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          marginTop: '1.2rem', paddingTop: '1.2rem', borderTop: '1px solid var(--border)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
           <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.85rem', color: 'var(--charcoal)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Total Cost</span>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 600, color: 'var(--forest)' }}>
-            ₹ {fmt(project?.totalCost)}
+            Rs {fmt(project?.totalCost)}
           </span>
         </div>
       </SectionCard>
@@ -97,7 +132,7 @@ export default function SuccessScreen({ formData, onReset }) {
         <SectionCard title="Payment Summary">
           {payment?.bookingAmount && (
             <PaymentBlock title="Booking Amount" items={[
-              ['Amount',  `₹ ${fmt(parseFloat(payment.bookingAmount))}`],
+              ['Amount',  `Rs ${fmt(parseFloat(payment.bookingAmount))}`],
               ['Mode',    payment.bookingMode],
               ['Ref No.', payment.bookingRefId || '—'],
               ['Remark',  payment.bookingRemark || '—'],
@@ -106,7 +141,7 @@ export default function SuccessScreen({ formData, onReset }) {
           {(payment?.payments || []).map((inst, i) => (
             <PaymentBlock key={i} title={`Instalment ${i + 1}`} items={[
               ['Date',    inst.date],
-              ['Amount',  `₹ ${fmt(parseFloat(inst.amount))}`],
+              ['Amount',  `Rs ${fmt(parseFloat(inst.amount))}`],
               ['Mode',    inst.mode],
               ['Ref No.', inst.refId || '—'],
               ['Remark',  inst.remark || '—'],
@@ -130,15 +165,20 @@ export default function SuccessScreen({ formData, onReset }) {
           ['PIN',            personal?.pin],
           ['Profession',     personal?.profession],
         ]} />
-
         <div style={{ marginTop: '1rem', gridColumn: '1 / -1' }}>
           <span style={{ display: 'block', fontSize: '0.68rem', fontFamily: 'var(--font-body)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gray)', marginBottom: '0.2rem' }}>Street Address</span>
           <span style={{ fontSize: '0.9rem', color: 'var(--charcoal)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>{personal?.streetAddress || '—'}</span>
         </div>
       </SectionCard>
 
-     <button className="btn-primary" onClick={() => { window.location.href = localStorage.getItem('layoutUrl') || '/'; }} style={{ marginTop: '0.5rem' }}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13 8H3M7 4L3 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      <button
+        className="btn-primary"
+      onClick={() => { const url = localStorage.getItem('layoutUrl') || '/'; localStorage.removeItem('layoutUrl'); window.location.href = url; }}
+        style={{ marginTop: '0.5rem' }}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M13 8H3M7 4L3 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
         Back to Layout
       </button>
     </div>

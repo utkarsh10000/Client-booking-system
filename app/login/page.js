@@ -128,14 +128,13 @@ export default function LoginPage() {
             }}>Haute</span>
             <span style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '1rem',
-              fontWeight: 400,
-              color: 'var(--gold-pale)',
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              fontStyle: 'italic',
+              fontSize: '2.2rem',
+              fontWeight: 700,
+              color: 'var(--white)',
+              letterSpacing: '0.04em',
+              lineHeight: 1,
               marginLeft: '0.5rem',
-            }}>Developer</span>
+            }}>Developers</span>
           </div>
           <div style={{
             width: 48, height: 2,

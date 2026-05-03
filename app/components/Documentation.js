@@ -46,7 +46,11 @@ function UploadBox({ label, required, file, onFile, error }) {
       <label style={labelStyle}>
         {label}
         {required && <span style={{ color: '#dc2626' }}> *</span>}
-        {!required && <span style={{ fontSize: '0.65rem', color: 'var(--gray)', fontWeight: 400, marginLeft: 6, textTransform: 'none', letterSpacing: 0 }}>optional</span>}
+        {!required && (
+          <span style={{ fontSize: '0.65rem', color: 'var(--gray)', fontWeight: 400, marginLeft: 6, textTransform: 'none', letterSpacing: 0 }}>
+            optional
+          </span>
+        )}
       </label>
 
       <div
@@ -82,7 +86,9 @@ function UploadBox({ label, required, file, onFile, error }) {
               background: 'var(--forest)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9l4.5 4.5L15 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M3 9l4.5 4.5L15 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
             <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--forest)', fontFamily: 'var(--font-body)', margin: 0 }}>{file.name}</p>
             <p style={{ fontSize: '0.72rem', color: 'var(--gray)', fontFamily: 'var(--font-body)', margin: 0 }}>
@@ -96,7 +102,9 @@ function UploadBox({ label, required, file, onFile, error }) {
               background: 'rgba(201,144,26,0.1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 12V4M6 7l3-3 3 3M3 14h12" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M9 12V4M6 7l3-3 3 3M3 14h12" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
             <p style={{ fontSize: '0.85rem', color: 'var(--gray)', fontWeight: 500, fontFamily: 'var(--font-body)', margin: 0 }}>
               Click to upload or drag &amp; drop
@@ -111,20 +119,153 @@ function UploadBox({ label, required, file, onFile, error }) {
   );
 }
 
+// ── Client ID section ─────────────────────────────────────────────────────────
+function ClientIdSection({ isExisting, existingClientId, onToggle, onExistingIdChange, error }) {
+  return (
+    <div style={{
+      background: 'var(--cream)',
+      border: '1px solid var(--border)',
+      borderRadius: 'var(--radius-lg)',
+      padding: '1.4rem 1.6rem',
+      marginBottom: '1.6rem',
+    }}>
+      <p style={{
+        fontSize: '0.72rem',
+        fontFamily: 'var(--font-body)',
+        fontWeight: 700,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        color: 'var(--charcoal)',
+        marginBottom: '1rem',
+      }}>
+        Client ID
+      </p>
+
+      {/* Checkbox */}
+      <label style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        cursor: 'pointer',
+        userSelect: 'none',
+        marginBottom: isExisting ? '1rem' : 0,
+      }}>
+        <div
+          onClick={onToggle}
+          style={{
+            width: 20,
+            height: 20,
+            borderRadius: 4,
+            border: `2px solid ${isExisting ? 'var(--forest)' : 'rgba(0,0,0,0.2)'}`,
+            background: isExisting ? 'var(--forest)' : 'var(--white)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            transition: 'all 0.2s ease',
+            cursor: 'pointer',
+          }}
+        >
+          {isExisting && (
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+              <path d="M1.5 5.5l3 3L9.5 2.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+        </div>
+        <span style={{
+          fontSize: '0.88rem',
+          fontFamily: 'var(--font-body)',
+          fontWeight: 500,
+          color: 'var(--charcoal)',
+        }}>
+          Client is already registered
+        </span>
+      </label>
+
+      {/* Show hint when unchecked */}
+      {!isExisting && (
+        <p style={{
+          fontSize: '0.75rem',
+          color: 'var(--gray)',
+          fontFamily: 'var(--font-body)',
+          marginTop: '0.6rem',
+          lineHeight: 1.5,
+        }}>
+          A new Client ID will be auto-generated and sent to the client via email.
+        </p>
+      )}
+
+      {/* Existing ID input — shown only when checked */}
+      {isExisting && (
+        <div>
+          <label style={labelStyle}>
+            Existing Client ID <span style={{ color: '#dc2626' }}>*</span>
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. HDHWC0001"
+            value={existingClientId}
+            onChange={(e) => onExistingIdChange(e.target.value.toUpperCase())}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              fontFamily: 'monospace',
+              fontSize: '1rem',
+              fontWeight: 700,
+              letterSpacing: '3px',
+              color: 'var(--forest)',
+              background: 'var(--white)',
+              border: `1.5px solid ${error ? '#dc2626' : 'rgba(201,144,26,0.3)'}`,
+              borderRadius: 'var(--radius)',
+              outline: 'none',
+              boxSizing: 'border-box',
+              textTransform: 'uppercase',
+            }}
+            onFocus={(e) => (e.target.style.borderColor = 'var(--gold)')}
+            onBlur={(e) => (e.target.style.borderColor = error ? '#dc2626' : 'rgba(201,144,26,0.3)')}
+          />
+          {error && <p style={errorMsg}><ErrorIcon />{error}</p>}
+          <p style={{
+            fontSize: '0.72rem',
+            color: 'var(--gray)',
+            fontFamily: 'var(--font-body)',
+            marginTop: '0.3rem',
+          }}>
+            Enter the existing Client ID — it will be stored as-is.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Documentation({ data, onChange, onSubmit, onBack, submitting }) {
   const [errors, setErrors] = useState({});
 
   const validate = (fields) => {
     const errs = {};
     if (!fields.aadharCard) errs.aadharCard = 'Aadhar card document is required';
-    if (!fields.panCard) errs.panCard = 'PAN card document is required';
+    if (!fields.panCard)    errs.panCard    = 'PAN card document is required';
     if (fields.optionalDocName?.trim() && !fields.optionalDoc)
       errs.optionalDoc = 'Please upload the document you named above';
+    // Existing client ID required when checkbox is checked
+    if (fields.isExistingClient && !fields.existingClientId?.trim())
+      errs.existingClientId = 'Please enter the existing Client ID';
     return errs;
   };
 
   const handleChange = (field, value) => {
     const updated = { ...data, [field]: value };
+    onChange(updated);
+    setErrors(validate(updated));
+  };
+
+  const handleToggleExisting = () => {
+    const updated = {
+      ...data,
+      isExistingClient: !data.isExistingClient,
+      existingClientId: '',
+    };
     onChange(updated);
     setErrors(validate(updated));
   };
@@ -143,6 +284,15 @@ export default function Documentation({ data, onChange, onSubmit, onBack, submit
         <h3 style={{ marginBottom: 0 }}>Upload Documents</h3>
         <div className="divider" />
       </div>
+
+      {/* Client ID section — FIRST */}
+      <ClientIdSection
+        isExisting={!!data.isExistingClient}
+        existingClientId={data.existingClientId || ''}
+        onToggle={handleToggleExisting}
+        onExistingIdChange={(v) => handleChange('existingClientId', v)}
+        error={errors.existingClientId}
+      />
 
       {/* Required docs */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.4rem', marginBottom: '1.6rem' }}>
@@ -195,7 +345,9 @@ export default function Documentation({ data, onChange, onSubmit, onBack, submit
               boxSizing: 'border-box',
             }}
           />
-          <p style={{ fontSize: '0.72rem', color: 'var(--gray)', marginTop: '0.25rem', fontFamily: 'var(--font-body)' }}>Give a name to identify this document</p>
+          <p style={{ fontSize: '0.72rem', color: 'var(--gray)', marginTop: '0.25rem', fontFamily: 'var(--font-body)' }}>
+            Give a name to identify this document
+          </p>
         </div>
 
         <UploadBox
@@ -224,7 +376,9 @@ export default function Documentation({ data, onChange, onSubmit, onBack, submit
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           flexShrink: 0,
         }}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v9M5 7l3 3 3-3M2 12h12" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 1v9M5 7l3 3 3-3M2 12h12" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
         <div>
           <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--forest)', fontFamily: 'var(--font-body)', marginBottom: '0.2rem' }}>
@@ -238,7 +392,9 @@ export default function Documentation({ data, onChange, onSubmit, onBack, submit
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem' }}>
         <button className="btn-dark" onClick={onBack} disabled={submitting}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13 8H3M7 4L3 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M13 8H3M7 4L3 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
           Back
         </button>
         <button
@@ -257,7 +413,9 @@ export default function Documentation({ data, onChange, onSubmit, onBack, submit
             </>
           ) : (
             <>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4L14 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8l4 4L14 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
               Submit Registration
             </>
           )}
