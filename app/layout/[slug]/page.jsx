@@ -234,6 +234,119 @@ function HoldTimer({ holdUntil }) {
   );
 }
 
+/* ─────────────────────────── Booking Info Popover ───────────────────────── */
+function BookingInfoPopover({ bookedByName, bookedDate }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const formattedDate = bookedDate
+    ? new Date(bookedDate).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
+
+  return (
+    <div ref={ref} style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        title="Booking info"
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: "50%",
+          border: "1.5px solid #bba8d8",
+          background: open ? "#e0d4f0" : "rgba(187,168,216,0.18)",
+          color: "#3b2060",
+          fontSize: 12,
+          fontWeight: 800,
+          cursor: "pointer",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          lineHeight: 1,
+          transition: "background 0.2s",
+          flexShrink: 0,
+        }}
+      >
+        i
+      </button>
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 8px)",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 200,
+            background: "var(--white)",
+            border: "1.5px solid #bba8d8",
+            borderRadius: 10,
+            boxShadow: "0 8px 32px rgba(59,32,96,0.18)",
+            padding: "14px 18px",
+            minWidth: 210,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {/* small arrow */}
+          <div
+            style={{
+              position: "absolute",
+              top: -8,
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: 14,
+              height: 8,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: 12,
+                height: 12,
+                background: "var(--white)",
+                border: "1.5px solid #bba8d8",
+                transform: "rotate(45deg)",
+                margin: "4px auto 0",
+              }}
+            />
+          </div>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#3b2060",
+              marginBottom: 10,
+              fontFamily: "var(--font-body)",
+            }}
+          >
+            Booking Details
+          </div>
+          <div style={{ fontSize: 12, color: "var(--charcoal)", marginBottom: 6, fontFamily: "var(--font-body)" }}>
+            <span style={{ color: "var(--gray)", fontWeight: 500 }}>Booked by: </span>
+            <strong>{bookedByName || "—"}</strong>
+          </div>
+          <div style={{ fontSize: 12, color: "var(--charcoal)", fontFamily: "var(--font-body)" }}>
+            <span style={{ color: "var(--gray)", fontWeight: 500 }}>Date: </span>
+            <strong>{formattedDate}</strong>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ══════════════════════════ Manage Employees Modal ══════════════════════════ */
 function ManageEmployeesModal({ onClose }) {
   const [employees, setEmployees] = useState([]);
@@ -875,6 +988,8 @@ function BulkEditModal({ plots, sector, onClose, onSaved }) {
     pricePerSqYard: "",
     status: "",
     corner: "",
+    bookedByName: "",
+    bookedDate: "",
   });
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -923,6 +1038,10 @@ function BulkEditModal({ plots, sector, onClose, onSaved }) {
       updates.pricePerSqYard = Number(changes.pricePerSqYard);
     if (changes.status.trim()) updates.status = changes.status;
     if (changes.corner !== "") updates.corner = changes.corner === "true";
+    if (changes.status === "booked") {
+      if (changes.bookedByName.trim()) updates.bookedByName = changes.bookedByName.trim();
+      if (changes.bookedDate.trim()) updates.bookedDate = new Date(changes.bookedDate);
+    }
     if (Object.keys(updates).length === 0) {
       alert("Set at least one field to change.");
       return;
@@ -1328,6 +1447,58 @@ function BulkEditModal({ plots, sector, onClose, onSaved }) {
                     </select>
                   </div>
                 </div>
+
+                {changes.status === "booked" && (
+                  <div
+                    style={{
+                      marginTop: 14,
+                      padding: "14px 16px",
+                      background: "#e0d4f0",
+                      border: "1px solid #bba8d8",
+                      borderRadius: "var(--radius)",
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 14,
+                    }}
+                  >
+                    <div
+                      style={{
+                        gridColumn: "1/-1",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        color: "#3b2060",
+                        marginBottom: 4,
+                      }}
+                    >
+                      Booking Info (required for Booked status)
+                    </div>
+                    <div>
+                      <label style={{ ...labelStyle, color: "#3b2060" }}>Company / Individual</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Sharma Builders"
+                        value={changes.bookedByName}
+                        onChange={(e) =>
+                          setChanges((p) => ({ ...p, bookedByName: e.target.value }))
+                        }
+                        style={inputStyle}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ ...labelStyle, color: "#3b2060" }}>Date Booked</label>
+                      <input
+                        type="date"
+                        value={changes.bookedDate}
+                        onChange={(e) =>
+                          setChanges((p) => ({ ...p, bookedDate: e.target.value }))
+                        }
+                        style={inputStyle}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
@@ -3209,22 +3380,30 @@ export default function LayoutPage() {
                             flexWrap: "wrap",
                           }}
                         >
-                          <div
-                            style={{
-                              background:
-                                STATUS[selectedPlot.status]?.bg || "#f5f5f5",
-                              border: `1px solid ${STATUS[selectedPlot.status]?.border || "#ccc"}`,
-                              borderRadius: 999,
-                              padding: "5px 14px",
-                              fontSize: 11,
-                              color:
-                                STATUS[selectedPlot.status]?.color || "#666",
-                              fontWeight: 700,
-                              letterSpacing: "0.06em",
-                            }}
-                          >
-                            {STATUS[selectedPlot.status]?.label ||
-                              selectedPlot.status}
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                            <div
+                              style={{
+                                background:
+                                  STATUS[selectedPlot.status]?.bg || "#f5f5f5",
+                                border: `1px solid ${STATUS[selectedPlot.status]?.border || "#ccc"}`,
+                                borderRadius: 999,
+                                padding: "5px 14px",
+                                fontSize: 11,
+                                color:
+                                  STATUS[selectedPlot.status]?.color || "#666",
+                                fontWeight: 700,
+                                letterSpacing: "0.06em",
+                              }}
+                            >
+                              {STATUS[selectedPlot.status]?.label ||
+                                selectedPlot.status}
+                            </div>
+                            {selectedPlot.status === "booked" && (
+                              <BookingInfoPopover
+                                bookedByName={selectedPlot.bookedByName}
+                                bookedDate={selectedPlot.bookedDate}
+                              />
+                            )}
                           </div>
                           {isAdmin && (
                             <>
@@ -3781,6 +3960,100 @@ export default function LayoutPage() {
                 ))}
               </select>
             </div>
+            {editPlot.status === "booked" && (
+              <div
+                style={{
+                  marginBottom: 16,
+                  padding: "14px 16px",
+                  background: "#e0d4f0",
+                  border: "1px solid #bba8d8",
+                  borderRadius: "var(--radius)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    color: "#3b2060",
+                    marginBottom: 12,
+                    fontFamily: "var(--font-body)",
+                  }}
+                >
+                  Booking Info
+                </div>
+                <div style={{ marginBottom: 10 }}>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "#3b2060",
+                      marginBottom: 5,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Company / Individual *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Sharma Builders"
+                    value={editPlot.bookedByName || ""}
+                    onChange={(e) =>
+                      setEditPlot((p) => ({ ...p, bookedByName: e.target.value }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      border: "1.5px solid #bba8d8",
+                      borderRadius: "var(--radius)",
+                      fontSize: 13,
+                      fontFamily: "var(--font-body)",
+                      boxSizing: "border-box",
+                      background: "var(--white)",
+                      color: "var(--charcoal)",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "#3b2060",
+                      marginBottom: 5,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Date Booked
+                  </label>
+                  <input
+                    type="date"
+                    value={editPlot.bookedDate || ""}
+                    onChange={(e) =>
+                      setEditPlot((p) => ({ ...p, bookedDate: e.target.value }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      border: "1.5px solid #bba8d8",
+                      borderRadius: "var(--radius)",
+                      fontSize: 13,
+                      fontFamily: "var(--font-body)",
+                      boxSizing: "border-box",
+                      background: "var(--white)",
+                      color: "var(--charcoal)",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
             <div
               style={{
                 marginBottom: 16,

@@ -73,6 +73,7 @@ export default function ProjectDetails({ data, onChange, onNext }) {
   const [touched, setTouched] = useState({});
   const [isCustomPLC, setIsCustomPLC] = useState(false);
   const [customPLCValue, setCustomPLCValue] = useState('');
+  const [referralType, setReferralType] = useState(''); // 'employee' | 'channelPartner' | ''
 
   const fromLayout      = !!searchParams.get('plotId');
 const lockedPlotNo    = searchParams.get('plotNo')       || '';
@@ -163,7 +164,14 @@ const lockedCity      = searchParams.get('city')         || '';
     const errs = validate(data);
     setErrors(errs);
     if (Object.keys(errs).length === 0) {
-      onNext({ ...data, bsp, plcAmount, devCharge, totalCost });
+      onNext({
+        ...data,
+        bsp, plcAmount, devCharge, totalCost,
+        referralType,
+        employeeId:         referralType === 'employee'       ? (data.employeeId        || '') : '',
+        channelPartnerName: referralType === 'channelPartner' ? (data.channelPartnerName || '') : '',
+        employeeReference:  referralType === 'channelPartner' ? (data.employeeReference  || '') : '',
+      });
     }
   };
 
@@ -177,6 +185,82 @@ const lockedCity      = searchParams.get('city')         || '';
         <div className="section-label">Step 1</div>
         <h3 style={{ marginBottom: 0 }}>Project Information</h3>
         <div className="divider" />
+      </div>
+
+      {/* Referral Type */}
+      <div style={{ marginBottom: '1.5rem', padding: '1.2rem 1.4rem', background: 'var(--gray-light)', borderRadius: 'var(--radius)', border: '1.5px solid rgba(0,0,0,0.08)' }}>
+        <p style={{ ...labelStyle, marginBottom: '0.8rem' }}>Referral Type</p>
+        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', marginBottom: referralType ? '1rem' : 0 }}>
+          {/* Employee checkbox */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--charcoal)', fontWeight: 500 }}>
+            <input
+              type="checkbox"
+              checked={referralType === 'employee'}
+              onChange={() => {
+                const next = referralType === 'employee' ? '' : 'employee';
+                setReferralType(next);
+                onChange({ ...data, employeeId: '', channelPartnerName: '', employeeReference: '' });
+              }}
+              style={{ width: 16, height: 16, accentColor: 'var(--forest)', cursor: 'pointer' }}
+            />
+            Employee
+          </label>
+
+          {/* Channel Partner checkbox */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--charcoal)', fontWeight: 500 }}>
+            <input
+              type="checkbox"
+              checked={referralType === 'channelPartner'}
+              onChange={() => {
+                const next = referralType === 'channelPartner' ? '' : 'channelPartner';
+                setReferralType(next);
+                onChange({ ...data, employeeId: '', channelPartnerName: '', employeeReference: '' });
+              }}
+              style={{ width: 16, height: 16, accentColor: 'var(--forest)', cursor: 'pointer' }}
+            />
+            Channel Partner
+          </label>
+        </div>
+
+        {/* Employee ID input */}
+        {referralType === 'employee' && (
+          <div style={{ maxWidth: 320 }}>
+            <label style={labelStyle}>Employee ID <span style={{ color: '#dc2626' }}>*</span></label>
+            <input
+              type="text"
+              placeholder="e.g. EMP-1042"
+              value={data.employeeId || ''}
+              onChange={(e) => onChange({ ...data, employeeId: e.target.value })}
+              style={inputStyle()}
+            />
+          </div>
+        )}
+
+        {/* Channel Partner inputs */}
+        {referralType === 'channelPartner' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div>
+              <label style={labelStyle}>Channel Partner Name <span style={{ color: '#dc2626' }}>*</span></label>
+              <input
+                type="text"
+                placeholder="e.g. Rahul Sharma"
+                value={data.channelPartnerName || ''}
+                onChange={(e) => onChange({ ...data, channelPartnerName: e.target.value })}
+                style={inputStyle()}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Employee Reference <span style={{ color: '#dc2626' }}>*</span></label>
+              <input
+                type="text"
+                placeholder="e.g. EMP-2031"
+                value={data.employeeReference || ''}
+                onChange={(e) => onChange({ ...data, employeeReference: e.target.value })}
+                style={inputStyle()}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem' }}>

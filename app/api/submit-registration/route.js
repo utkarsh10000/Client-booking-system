@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server';
+
+export const maxDuration = 60;
 import { google } from 'googleapis';
 import { Readable } from 'stream';
 import { connectDB } from '@/lib/mongoose';
 import Plot from '@/models/Plot';
 import ClientCounter from '@/models/ClientCounter';
 import { getProjectCode, buildClientId } from '@/lib/clientId';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+// Increase body size limit for this route
+export const fetchCache = 'force-no-store';
 
 const SHEET_SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
@@ -93,15 +101,17 @@ async function uploadImageToDrive(drive, base64String, fileName, folderId) {
   return `https://drive.google.com/file/d/${fileId}/view`;
 }
 
-// ── Sheet header — Client ID added as the LAST column ────────────────────────
+// ── Sheet header ────────────────────────────────────────────────────────────
 const HEADER = [
   'Submission Date',
-  'Client ID',                                          // NEW
+  'Client ID',
+  'Referral Type', 'Employee ID', 'Channel Partner Name', 'Employee Reference',
   'Project Name', 'Location', 'Plot No.', 'Sector',
   'Price/Sq.Yd (Rs)', 'Plot Size (sq.yd)',
   'BSP (Rs)', 'PLC', 'PLC Amount (Rs)',
   'Club Membership (Rs)', 'Development Charge (Rs)', 'Total Cost (Rs)',
   'Booking Amount (Rs)', 'Booking Mode', 'Booking Ref No.', 'Booking Image', 'Booking Remark',
+  'Amount Paid (Rs)',
   'Instalments Summary', 'Instalment Images',
   'First Name', 'Last Name', "Father's/Husband's Name",
   'Street Address', 'City (Personal)',
@@ -125,18 +135,14 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const { project, payment, personal, documents, plotId, clientIdMode, existingClientId } = body;
-    // clientIdMode: "new" | "existing"
-    // existingClientId: string (only used when clientIdMode === "existing")
 
     await connectDB();
 
     // ── Resolve Client ID ─────────────────────────────────────────────────────
     let clientId;
     if (clientIdMode === 'existing') {
-      // Use whatever the user typed — no validation
       clientId = (existingClientId || '').trim().toUpperCase();
     } else {
-      // Generate a new sequential ID for this project
       const projectCode = getProjectCode(project?.projectName || '');
       const seq         = await getNextSeq(projectCode);
       clientId          = buildClientId(projectCode, seq);
@@ -184,25 +190,36 @@ export async function POST(request) {
     // ── Ensure sheet header ───────────────────────────────────────────────────
     const sheetName = project?.projectName || 'Sheet1';
 
-    // Get all existing sheet names
     const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId: sheetId });
     const existingSheets = spreadsheet.data.sheets.map(s => s.properties.title);
 
     if (!existingSheets.includes(sheetName)) {
-      // Create the sheet
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId: sheetId,
         requestBody: {
           requests: [{ addSheet: { properties: { title: sheetName } } }],
         },
       });
-      // Add header row
-      await sheets.spreadsheets.values.append({
+      await sheets.spreadsheets.values.update({
         spreadsheetId: sheetId,
         range: `${sheetName}!A1`,
         valueInputOption: 'RAW',
         requestBody: { values: [HEADER] },
       });
+    } else {
+      const firstRow = await sheets.spreadsheets.values.get({
+        spreadsheetId: sheetId,
+        range: `${sheetName}!A1:A1`,
+      });
+      const hasHeader = firstRow.data.values?.[0]?.[0] === 'Submission Date';
+      if (!hasHeader) {
+        await sheets.spreadsheets.values.update({
+          spreadsheetId: sheetId,
+          range: `${sheetName}!A1`,
+          valueInputOption: 'RAW',
+          requestBody: { values: [HEADER] },
+        });
+      }
     }
 
     // ── Build sheet row ───────────────────────────────────────────────────────
@@ -216,9 +233,17 @@ export async function POST(request) {
 
     const instalmentImages = instImageLinks.filter(Boolean).join('\n');
 
+    const totalAmountPaid =
+      (parseFloat(payment?.bookingAmount) || 0) +
+      instalments.reduce((sum, inst) => sum + (parseFloat(inst.amount) || 0), 0);
+
     const row = [
       now,
-      clientId,                                          // NEW — second column
+      clientId,
+      project?.referralType         || '',
+      project?.employeeId           || '',
+      project?.channelPartnerName   || '',
+      project?.employeeReference    || '',
       project?.projectName    || '',
       project?.city           || project?.location || '',
       project?.plotNo         || '',
@@ -236,6 +261,7 @@ export async function POST(request) {
       payment?.bookingRefId   || '',
       bookingImageLink,
       payment?.bookingRemark  || '',
+      fmt(totalAmountPaid),
       instalmentSummary,
       instalmentImages,
       personal?.firstName         || '',
@@ -335,7 +361,7 @@ export async function POST(request) {
                     </tr>
                     <tr style="border-top: 1px solid #e8dfd4;">
                       <td style="padding: 8px 0; color: #9e8c7a;">Amount Paid</td>
-                      <td style="padding: 8px 0; color: #2c2418; font-weight: 600;">Rs ${fmt(payment?.bookingAmount)}/-</td>
+                      <td style="padding: 8px 0; color: #2c2418; font-weight: 600;">Rs ${fmt(totalAmountPaid)}/-</td>
                     </tr>
                     <tr style="border-top: 1px solid #e8dfd4;">
                       <td style="padding: 8px 0; color: #9e8c7a;">Payment Mode</td>

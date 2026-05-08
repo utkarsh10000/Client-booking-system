@@ -107,7 +107,7 @@ export default function PersonalDetails({ data, onChange, onNext, onBack }) {
     else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(fields.panNo.trim().toUpperCase()))
       errs.panNo = 'Enter a valid PAN (e.g. ABCDE1234F)';
     if (!fields.email?.trim())             errs.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email.trim()))
+    else if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(fields.email.trim()))
       errs.email = 'Enter a valid email address';
     if (!fields.profession?.trim())        errs.profession = 'Profession is required';
     return errs;

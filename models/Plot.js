@@ -18,7 +18,9 @@ const PlotSchema = new mongoose.Schema(
     notes:      { type: String, default: '' },
     heldByName: { type: String, default: '' },
     heldById:   { type: String, default: '' },
-    holdUntil:  { type: Date,   default: null },
+    holdUntil:     { type: Date,   default: null },
+    bookedByName:  { type: String, default: '' },
+    bookedDate:    { type: Date,   default: null },
   },
   { timestamps: true }
 );
