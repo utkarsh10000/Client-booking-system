@@ -1673,7 +1673,7 @@ export default function LayoutPage() {
     return {
       total: plots.length,
       available: plots.filter((p) => p.status === "available").length,
-      sold: plots.filter((p) => p.status === "sold").length,
+      sold: plots.filter((p) => p.status === "sold" || p.status === "booked").length,
       hold: plots.filter((p) => p.status === "hold").length,
     };
   };
@@ -1681,7 +1681,7 @@ export default function LayoutPage() {
   const globalStats = {
     total: allPlots.length,
     available: allPlots.filter((p) => p.status === "available").length,
-    sold: allPlots.filter((p) => p.status === "sold").length,
+    sold: allPlots.filter((p) => p.status === "sold" || p.status === "booked").length,
     hold: allPlots.filter((p) => p.status === "hold").length,
   };
 

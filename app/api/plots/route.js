@@ -20,6 +20,12 @@ export async function GET(request) {
     if (sector)    query.sector = sector.toUpperCase();
     if (status)    query.status = status;
 
+    // Auto-release any expired holds before returning
+    await Plot.updateMany(
+      { status: 'hold', holdUntil: { $lt: new Date() } },
+      { $set: { status: 'available', heldByName: '', heldById: '', holdUntil: null } }
+    );
+
     const plots = await Plot.find(query).sort({ sector: 1, plotNo: 1 }).lean();
     return Response.json({ plots });
   } catch (err) {
