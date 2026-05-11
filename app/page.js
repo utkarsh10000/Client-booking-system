@@ -139,6 +139,15 @@ export default function HomePage() {
                   border: '1px solid rgba(201,144,26,0.3)'
                 }}>Admin</div>
               )}
+              {isAdmin && (
+                <button onClick={() => router.push('/dashboard')} style={{
+                  background: 'rgba(201,144,26,0.15)', color: 'var(--gold-pale)',
+                  border: '1px solid rgba(201,144,26,0.3)', padding: '8px 16px',
+                  borderRadius: 'var(--radius)', fontSize: 11, fontFamily: 'var(--font-body)',
+                  cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',
+                  fontWeight: 700,
+                }}>Client Dashboard</button>
+              )}
               <button onClick={handleLogout} style={{
                 background: 'transparent', color: 'rgba(255,255,255,0.5)',
                 border: '1px solid rgba(255,255,255,0.15)', padding: '8px 16px',
