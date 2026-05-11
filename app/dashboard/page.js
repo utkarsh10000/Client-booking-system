@@ -680,14 +680,15 @@ export default function DashboardPage() {
     if (!q) { setSearchError('Please enter a Client ID to search.'); return; }
     setSearching(true); setSearchError('');
     try {
-      const res  = await fetch('/api/clients');
+      const res  = await fetch(`/api/clients?clientId=${encodeURIComponent(q)}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to fetch');
-      const all = data.clients || [];
-      setClients(all);
-      const found = all.find(c => (c['Client ID'] || '').toUpperCase() === q);
-      if (found) { setProfileClient(found); }
-      else { setSearchError(`No client found with ID "${q}"`); setProfileClient(null); }
+      if (data.found && data.client) {
+        setProfileClient(data.client);
+      } else {
+        setSearchError(`No client found with ID "${q}"`);
+        setProfileClient(null);
+      }
     } catch (e) { setSearchError(e.message); }
     finally { setSearching(false); }
   };

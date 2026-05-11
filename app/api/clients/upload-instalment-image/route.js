@@ -6,15 +6,15 @@ import { cookies } from 'next/headers';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-function getDriveAuthClient() {
-  const clientId     = process.env.GOOGLE_OAUTH_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
-  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
-  if (!clientId || !clientSecret || !refreshToken)
-    throw new Error('Missing OAuth2 credentials for Drive.');
-  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
-  oauth2Client.setCredentials({ refresh_token: refreshToken });
-  return oauth2Client;
+async function getDriveAuthClient() {
+  const email  = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const rawKey = process.env.GOOGLE_PRIVATE_KEY;
+  if (!email || !rawKey) throw new Error('Missing Google service account credentials.');
+  const auth = new google.auth.GoogleAuth({
+    credentials: { client_email: email, private_key: rawKey.replace(/\\n/g, '\n') },
+    scopes: ['https://www.googleapis.com/auth/drive'],
+  });
+  return auth.getClient();
 }
 
 function base64ToStream(base64String) {
@@ -41,7 +41,7 @@ export async function POST(request) {
     if (!imageBase64) return NextResponse.json({ error: 'No image provided.' }, { status: 400 });
 
     const driveFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
-    const driveAuth     = getDriveAuthClient();
+    const driveAuth     = await getDriveAuthClient();
     const drive         = google.drive({ version: 'v3', auth: driveAuth });
 
     // Find the exact client subfolder using Client ID prefix (e.g. "HD-0042")

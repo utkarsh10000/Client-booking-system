@@ -34,7 +34,7 @@ async function getSheetAuthClient() {
   return auth.getClient();
 }
 
-export async function GET() {
+export async function GET(request) {
   // Auth guard — admin only
   const cookieStore = await cookies();
   const role = cookieStore.get('auth_role')?.value;
@@ -42,45 +42,62 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  try {
+ try {
+    const { searchParams } = new URL(request.url);
+    const searchId = searchParams.get('clientId')?.trim().toUpperCase();
+
     const sheetId = process.env.GOOGLE_SHEET_ID;
     if (!sheetId) return NextResponse.json({ error: 'GOOGLE_SHEET_ID not configured.' }, { status: 500 });
 
-    const auth    = await getSheetAuthClient();
-    const sheets  = google.sheets({ version: 'v4', auth });
+    const auth   = await getSheetAuthClient();
+    const sheets = google.sheets({ version: 'v4', auth });
 
     // Get all sheet tabs
     const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId: sheetId });
     const sheetTabs   = spreadsheet.data.sheets.map(s => s.properties.title);
 
-    const allClients = [];
+    // If searching by Client ID — scan sheets and return as soon as found
+    if (searchId) {
+      for (const sheetName of sheetTabs) {
+        const rangeRes = await sheets.spreadsheets.values.get({
+          spreadsheetId: sheetId,
+          range: `${sheetName}!A1:AQ`,
+        });
+        const rows = rangeRes.data.values || [];
+        if (rows.length < 2) continue;
+        if (rows[0][0] !== 'Submission Date') continue;
 
+        const dataRows = rows.slice(1);
+        const colIdx   = rows[0].findIndex(h => h === 'Client ID');
+        const rowIdx   = dataRows.findIndex(r => (r[colIdx] || '').toUpperCase() === searchId);
+
+        if (rowIdx !== -1) {
+          const client = { _sheet: sheetName, _rowIndex: rowIdx + 2 };
+          HEADER.forEach((key, i) => { client[key] = dataRows[rowIdx][i] || ''; });
+          return NextResponse.json({ client, found: true });
+        }
+      }
+      return NextResponse.json({ client: null, found: false });
+    }
+
+    // No clientId param — return all
+    const allClients = [];
     for (const sheetName of sheetTabs) {
-      // Skip any sheets that aren't project sheets (e.g. a "Config" tab)
       const rangeRes = await sheets.spreadsheets.values.get({
         spreadsheetId: sheetId,
         range: `${sheetName}!A1:AQ`,
       });
-
       const rows = rangeRes.data.values || [];
-      if (rows.length < 2) continue; // no data rows
-
-      // Determine header row (row 0)
-      const headerRow = rows[0];
-      // Skip sheets that don't look like client sheets
-      if (headerRow[0] !== 'Submission Date') continue;
-
-      // Map each data row to an object
+      if (rows.length < 2) continue;
+      if (rows[0][0] !== 'Submission Date') continue;
       rows.slice(1).forEach((row, idx) => {
-        const client = { _sheet: sheetName, _rowIndex: idx + 2 }; // 1-based, +1 for header
-        HEADER.forEach((key, colIdx) => {
-          client[key] = row[colIdx] || '';
-        });
+        const client = { _sheet: sheetName, _rowIndex: idx + 2 };
+        HEADER.forEach((key, colIdx) => { client[key] = row[colIdx] || ''; });
         allClients.push(client);
       });
     }
-
     return NextResponse.json({ clients: allClients, sheets: sheetTabs });
+
   } catch (err) {
     console.error('[Clients GET] Error:', err);
     return NextResponse.json({ error: err.message || 'Failed to fetch clients.' }, { status: 500 });

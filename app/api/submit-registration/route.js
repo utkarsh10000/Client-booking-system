@@ -28,16 +28,16 @@ async function getSheetAuthClient() {
   return auth.getClient();
 }
 
-// ── OAuth2 auth (Drive) ───────────────────────────────────────────────────────
-function getDriveAuthClient() {
-  const clientId     = process.env.GOOGLE_OAUTH_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
-  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
-  if (!clientId || !clientSecret || !refreshToken)
-    throw new Error('Missing OAuth2 credentials for Drive.');
-  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
-  oauth2Client.setCredentials({ refresh_token: refreshToken });
-  return oauth2Client;
+// ── Service Account auth (Drive) ─────────────────────────────────────────────
+async function getDriveAuthClient() {
+  const email  = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const rawKey = process.env.GOOGLE_PRIVATE_KEY;
+  if (!email || !rawKey) throw new Error('Missing Google service account credentials.');
+  const auth = new google.auth.GoogleAuth({
+    credentials: { client_email: email, private_key: rawKey.replace(/\\n/g, '\n') },
+    scopes: ['https://www.googleapis.com/auth/drive'],
+  });
+  return auth.getClient();
 }
 
 function fmt(num) {
@@ -162,7 +162,7 @@ export async function POST(request) {
     if (!driveFolderId) return NextResponse.json({ error: 'GOOGLE_DRIVE_FOLDER_ID not configured.' }, { status: 500 });
 
     const sheetAuth = await getSheetAuthClient();
-    const driveAuth = getDriveAuthClient();
+    const driveAuth = await getDriveAuthClient();
     const sheets    = google.sheets({ version: 'v4', auth: sheetAuth });
     const drive     = google.drive({  version: 'v3', auth: driveAuth });
 
