@@ -470,7 +470,7 @@ export default function PaymentPlan({ data, onChange, onNext, onBack }) {
         onBlur={handleBlur}
       />
 
-      {/* Instalments */}
+      {/* Installments */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <p style={{ fontSize: '0.78rem', fontFamily: 'var(--font-body)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--charcoal)', margin: 0 }}>

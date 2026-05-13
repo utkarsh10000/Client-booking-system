@@ -139,7 +139,7 @@ export default function SuccessScreen({ formData, onReset }) {
             ]} />
           )}
           {(payment?.payments || []).map((inst, i) => (
-            <PaymentBlock key={i} title={`Instalment ${i + 1}`} items={[
+            <PaymentBlock key={i} title={`Installment ${i + 1}`} items={[
               ['Date',    inst.date],
               ['Amount',  `Rs ${fmt(parseFloat(inst.amount))}`],
               ['Mode',    inst.mode],

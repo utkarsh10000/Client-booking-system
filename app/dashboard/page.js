@@ -16,17 +16,17 @@ const FIELD_GROUPS = [
   { label:'Referral Info',    icon:'🤝', fields:['Referral Type','Employee ID','Channel Partner Name','Employee Reference'] },
   { label:'Project & Plot',   icon:'🏘️', fields:['Project Name','Location','Plot No.','Sector','Price/Sq.Yd (Rs)','Plot Size (sq.yd)'] },
   { label:'Pricing',          icon:'💰', fields:['BSP (Rs)','PLC','PLC Amount (Rs)','Club Membership (Rs)','Development Charge (Rs)','Total Cost (Rs)'] },
-  { label:'Payment',          icon:'💳', fields:['Booking Amount (Rs)','Booking Mode','Booking Ref No.','Booking Image','Booking Remark','Amount Paid (Rs)','Instalments Summary','Instalment Images'] },
+  { label:'Payment',          icon:'💳', fields:['Booking Amount (Rs)','Booking Mode','Booking Ref No.','Booking Image','Booking Remark','Amount Paid (Rs)','Installments Summary','Installment Images'] },
   { label:'Personal Details', icon:'👤', fields:['First Name','Last Name',"Father's/Husband's Name",'Street Address','City (Personal)','Mobile No.','PIN Code','Date of Birth','Age','Gender','PAN No.','Email','Profession'] },
   { label:'Documents',        icon:'📄', fields:['Aadhar Card','PAN Card','Optional Doc Name','Optional Doc'] },
 ];
 
-const LINK_FIELDS     = new Set(['Booking Image','Instalment Images','Aadhar Card','PAN Card','Optional Doc']);
-const TEXTAREA_FIELDS = new Set(['Instalments Summary','Street Address']);
-const READONLY_FIELDS = new Set(['Amount Paid (Rs)','Instalments Summary','Instalment Images']);
+const LINK_FIELDS     = new Set(['Booking Image','Installment Images','Aadhar Card','PAN Card','Optional Doc']);
+const TEXTAREA_FIELDS = new Set(['Installments Summary','Street Address']);
+const READONLY_FIELDS = new Set(['Amount Paid (Rs)','Installments Summary','Installment Images']);
 
-// ── Parse instalment JSON safely ──────────────────────────────────────────────
-function parseInstalments(raw) {
+// ── Parse Installment JSON safely ──────────────────────────────────────────────
+function parseInstallments(raw) {
   if (!raw) return [];
   // Try JSON first (old format from a few saves)
   try { return JSON.parse(raw); } catch {}
@@ -45,7 +45,7 @@ function parseInstalments(raw) {
       refId:    get('Ref: '),
       date:     get('Date: '),
       remark:   get('Note: '),
-      imageUrl: '',   // text format doesn't embed URLs inline; shown from Instalment Images column
+      imageUrl: '',   // text format doesn't embed URLs inline; shown from Installment Images column
     };
   });
 }
@@ -105,8 +105,8 @@ function PieChart({ paid, total }) {
   );
 }
 
-// ── Add Instalment Modal ──────────────────────────────────────────────────────
-function AddInstalmentModal({ client, onClose, onSave, saving }) {
+// ── Add Installment Modal ──────────────────────────────────────────────────────
+function AddInstallmentModal({ client, onClose, onSave, saving }) {
   const [form, setForm]     = useState({ date:'', mode:'', amount:'', refId:'', imageBase64:'', imageFileName:'', remark:'' });
   const [errors, setErrors] = useState({});
 
@@ -149,7 +149,7 @@ function AddInstalmentModal({ client, onClose, onSave, saving }) {
         {/* Header */}
         <div style={{ background:'#1a2e1a', borderRadius:'14px 14px 0 0', padding:'1.2rem 1.6rem', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
-            <div style={{ fontFamily:'Cormorant Garamond, serif', fontSize:'1.2rem', fontWeight:700, color:'#fff' }}>Add Instalment</div>
+            <div style={{ fontFamily:'Cormorant Garamond, serif', fontSize:'1.2rem', fontWeight:700, color:'#fff' }}>Add Installment</div>
             <div style={{ fontSize:'0.68rem', color:'rgba(255,255,255,0.45)', letterSpacing:'0.08em', textTransform:'uppercase', marginTop:2 }}>
               {client['Client ID']} · {[client['First Name'], client['Last Name']].filter(Boolean).join(' ')}
             </div>
@@ -229,7 +229,7 @@ function AddInstalmentModal({ client, onClose, onSave, saving }) {
           <button onClick={handleSubmit} disabled={saving} style={{ background:'#1a2e1a', border:'none', borderRadius:8, color:'#fff', fontSize:'0.82rem', fontWeight:700, padding:'0.6rem 1.5rem', cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:'0.4rem' }}>
             {saving
               ? <><span style={{ width:12, height:12, border:'2px solid rgba(255,255,255,0.3)', borderTop:'2px solid #fff', borderRadius:'50%', display:'inline-block', animation:'spin 0.7s linear infinite' }}/> Saving…</>
-              : '+ Add Instalment'
+              : '+ Add Installment'
             }
           </button>
         </div>
@@ -249,21 +249,21 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
   const [editData, setEditData] = useState({});
   const [saving, setSaving]     = useState(false);
 
-  const instalments = useMemo(() => {
-    const parsed = parseInstalments(client['Instalments Summary']);
-    // Stitch image URLs from the separate "Instalment Images" column (newline-separated)
-    const images = (client['Instalment Images'] || '').split('\n').filter(Boolean);
+  const Installments = useMemo(() => {
+    const parsed = parseInstallments(client['Installments Summary']);
+    // Stitch image URLs from the separate "Installment Images" column (newline-separated)
+    const images = (client['Installment Images'] || '').split('\n').filter(Boolean);
     return parsed.map((inst, i) => ({ ...inst, imageUrl: inst.imageUrl || images[i] || '' }));
   }, [client]);
 
   const bookingAmt  = parseFloat((client['Booking Amount (Rs)'] || '0').replace(/,/g, '')) || 0;
-  const instTotal   = instalments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
+  const instTotal   = Installments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
   const amountPaid  = bookingAmt + instTotal;
   const totalCost   = parseFloat((client['Total Cost (Rs)'] || '0').replace(/,/g, '')) || 0;
 
   const instLabel = (n) => {
     const labels = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
-    return (labels[n] || `${n+1}th`) + ' Instalment';
+    return (labels[n] || `${n+1}th`) + ' Installment';
   };
 
   // Save to Google Sheet
@@ -278,20 +278,20 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
     return data;
   };
 
-  const handleAddInstalment = async (form) => {
+  const handleAddInstallment = async (form) => {
     setSavingInst(true);
     try {
       // Upload image to Drive via API if a file was attached
       let imageUrl = '';
       if (form.imageBase64) {
-        const uploadRes = await fetch('/api/clients/upload-instalment-image', {
+        const uploadRes = await fetch('/api/clients/upload-Installment-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             clientId: client['Client ID'],
             sheetName: client._sheet,
             imageBase64: form.imageBase64,
-            instalmentIndex: parseInstalments(client['Instalments Summary']).length + 1,
+            InstallmentIndex: parseInstallments(client['Installments Summary']).length + 1,
             mode: form.mode,
           }),
         });
@@ -306,7 +306,7 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
         remark: form.remark || '',
         addedAt: new Date().toISOString(),
       };
-      const updatedInsts   = [...instalments, newInst];
+      const updatedInsts   = [...Installments, newInst];
 
       // Format exactly like the submission route: "Inst 1: Rs500000 | IMPS | Ref: xxx | Date: xxx"
       const newInstSummary = updatedInsts.map((i, idx) =>
@@ -318,8 +318,8 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
 
       const updatedClient = {
         ...client,
-        'Instalments Summary': newInstSummary,
-        'Instalment Images': newInstImages,
+        'Installments Summary': newInstSummary,
+        'Installment Images': newInstImages,
         'Amount Paid (Rs)': newAmountPaid,
       };
 
@@ -327,7 +327,7 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
       setClient(updatedClient);
       onClientUpdate(updatedClient);
       setShowAddInst(false);
-      showToast('Instalment added successfully ✓');
+      showToast('Installment added successfully ✓');
     } catch (e) {
       showToast(e.message, true);
     } finally {
@@ -427,10 +427,10 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px, 1fr))', gap:'0.75rem', margin:'1.25rem 0' }}>
         {[
           { label:'Booking Amount', val:`₹${bookingAmt.toLocaleString('en-IN')}`, color:'#1a6a3a' },
-          { label:'Instalments Paid', val:`₹${instTotal.toLocaleString('en-IN')}`, color:'#c9901a' },
+          { label:'Amount Paid', val:`₹${instTotal.toLocaleString('en-IN')}`, color:'#c9901a' },
           { label:'Total Paid', val:`₹${amountPaid.toLocaleString('en-IN')}`, color:'#1a2e1a' },
           { label:'Remaining', val:`₹${Math.max(0, totalCost - amountPaid).toLocaleString('en-IN')}`, color: totalCost - amountPaid <= 0 ? '#1a6a3a' : '#dc2626' },
-          { label:'No. of Instalments', val: instalments.length, color:'#7a7a6a' },
+          { label:'No. of Installments', val: Installments.length, color:'#7a7a6a' },
         ].map(s => (
           <div key={s.label} style={{ background:'#fff', border:'1px solid #e8e3db', borderRadius:9, padding:'0.85rem 1rem' }}>
             <div style={{ fontSize:'1.15rem', fontWeight:700, color: s.color, fontFamily:'Cormorant Garamond, serif' }}>{s.val}</div>
@@ -439,13 +439,13 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
         ))}
       </div>
 
-      {/* Instalments section */}
+      {/* Installments section */}
       <div style={{ background:'#fff', border:'1px solid #e8e3db', borderRadius:12, overflow:'hidden', marginBottom:'1.5rem' }}>
         <div style={{ background:'#1a2e1a', padding:'0.85rem 1.4rem', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{ fontFamily:'Cormorant Garamond, serif', fontSize:'1.1rem', fontWeight:700, color:'#fff' }}>
-            Instalments
+            Installments
             <span style={{ fontSize:'0.72rem', fontWeight:400, color:'rgba(255,255,255,0.4)', marginLeft:8, fontFamily:'DM Sans, sans-serif', letterSpacing:'0.06em', textTransform:'uppercase' }}>
-              {instalments.length} recorded
+              {Installments.length} recorded
             </span>
           </div>
           <button
@@ -453,13 +453,13 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
             style={{ background:'#c9901a', border:'none', borderRadius:7, color:'#fff', fontSize:'0.78rem', fontWeight:700, padding:'0.45rem 1rem', cursor:'pointer', display:'flex', alignItems:'center', gap:'0.4rem', fontFamily:'DM Sans, sans-serif', letterSpacing:'0.04em' }}
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-            Add Instalment
+            Add Installment
           </button>
         </div>
 
-        {instalments.length === 0 ? (
+        {Installments.length === 0 ? (
           <div style={{ padding:'2.5rem', textAlign:'center', color:'#9a9a8a', fontSize:'0.85rem' }}>
-            No instalments recorded yet.
+            No Installments recorded yet.
           </div>
         ) : (
           <div style={{ overflowX:'auto' }}>
@@ -472,7 +472,7 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
                 </tr>
               </thead>
               <tbody>
-                {instalments.map((inst, idx) => (
+                {Installments.map((inst, idx) => (
                   <tr key={idx} style={{ background: idx%2===0 ? '#fff' : '#faf9f6' }}>
                     <td style={{ padding:'0.65rem 1rem', color:'#9a9a8a', fontWeight:700, fontSize:'0.75rem' }}>
                       <span style={{ background:'#eaf5ef', color:'#1a6a3a', borderRadius:4, padding:'1px 6px', fontSize:'0.68rem', fontWeight:700 }}>{instLabel(idx)}</span>
@@ -530,12 +530,12 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
         )}
       </div>
 
-      {/* Add instalment modal */}
+      {/* Add Installment modal */}
       {showAddInst && (
-        <AddInstalmentModal
+        <AddInstallmentModal
           client={client}
           onClose={() => setShowAddInst(false)}
-          onSave={handleAddInstalment}
+          onSave={handleAddInstallment}
           saving={savingInst}
         />
       )}
@@ -821,7 +821,7 @@ export default function DashboardPage() {
             {/* Header */}
             <div style={{ marginBottom:'1.75rem' }}>
               <h1 style={{ fontFamily:'Cormorant Garamond, serif', fontSize:'2rem', fontWeight:700, color:'#1a2e1a', margin:0, lineHeight:1 }}>Client Dashboard</h1>
-              <p style={{ fontSize:'0.82rem', color:'#7a7a6a', marginTop:'0.4rem' }}>Search a client by their Client ID to view details and manage instalments.</p>
+              <p style={{ fontSize:'0.82rem', color:'#7a7a6a', marginTop:'0.4rem' }}>Search a client by their Client ID to view details and manage Installments.</p>
             </div>
 
            {/* Search Box */}
@@ -832,7 +832,7 @@ export default function DashboardPage() {
                     <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="9.5" cy="9.5" r="7" stroke="#1a6a3a" strokeWidth="1.8"/><path d="M15 15L20 20" stroke="#1a6a3a" strokeWidth="1.8" strokeLinecap="round"/></svg>
                   </div>
                   <div style={{ fontFamily:'Cormorant Garamond, serif', fontSize:'1.3rem', fontWeight:700, color:'#1a2e1a' }}>Search Client</div>
-                  <div style={{ fontSize:'0.78rem', color:'#9a9a8a', marginTop:'0.3rem' }}>Enter a Client ID to view details and manage instalments</div>
+                  <div style={{ fontSize:'0.78rem', color:'#9a9a8a', marginTop:'0.3rem' }}>Enter a Client ID to view details and manage Installments</div>
                 </div>
                 <div style={{ display:'flex', gap:'0.6rem' }}>
                   <input

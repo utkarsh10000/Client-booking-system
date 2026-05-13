@@ -14,7 +14,7 @@ const HEADER = [
   'Club Membership (Rs)', 'Development Charge (Rs)', 'Total Cost (Rs)',
   'Booking Amount (Rs)', 'Booking Mode', 'Booking Ref No.', 'Booking Image', 'Booking Remark',
   'Amount Paid (Rs)',
-  'Instalments Summary', 'Instalment Images',
+  'Installments Summary', 'Installment Images',
   'First Name', 'Last Name', "Father's/Husband's Name",
   'Street Address', 'City (Personal)',
   'Mobile No.', 'PIN Code',

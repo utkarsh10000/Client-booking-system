@@ -37,7 +37,7 @@ export async function POST(request) {
   if (role !== 'admin') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
-    const { clientId, imageBase64, instalmentIndex, mode } = await request.json();
+    const { clientId, imageBase64, InstallmentIndex, mode } = await request.json();
     if (!imageBase64) return NextResponse.json({ error: 'No image provided.' }, { status: 400 });
 
     const driveFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
@@ -68,7 +68,7 @@ export async function POST(request) {
     // Upload the image
     const mimeType = getMimeType(imageBase64);
     const ext      = mimeType.split('/')[1]?.replace('jpeg','jpg') || 'jpg';
-    const fileName = `Instalment_${instalmentIndex}_${mode || 'Payment'}.${ext}`;
+    const fileName = `Installment_${InstallmentIndex}_${mode || 'Payment'}.${ext}`;
 
     const uploaded = await drive.files.create({
       requestBody: { name: fileName, parents: [clientFolderId] },
@@ -83,7 +83,7 @@ export async function POST(request) {
     const url = `https://drive.google.com/file/d/${uploaded.data.id}/view`;
     return NextResponse.json({ success: true, url });
   } catch (err) {
-    console.error('[Upload Instalment Image] Error:', err);
+    console.error('[Upload Installment Image] Error:', err);
     return NextResponse.json({ error: err.message || 'Upload failed.' }, { status: 500 });
   }
 }
