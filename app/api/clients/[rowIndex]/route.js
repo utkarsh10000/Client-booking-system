@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 
 const HEADER = [
   'Submission Date', 'Client ID',
-  'Referral Type', 'Employee ID', 'Channel Partner Name', 'Employee Reference',
+  'Referral Type', 'Employee ID', 'Channel Partner Name', 'Employee Reference', 'Slab Percentage',
   'Project Name', 'Location', 'Plot No.', 'Sector',
   'Price/Sq.Yd (Rs)', 'Plot Size (sq.yd)',
   'BSP (Rs)', 'PLC', 'PLC Amount (Rs)',
@@ -54,9 +54,10 @@ export async function PATCH(request, { params }) {
 
   try {
     const body = await request.json();
+    const { rowIndex: rowIndexParam } = await params;
     const sheetName = body.sheetName || body.updatedClient?._sheet;
     const updatedClient = body.updatedClient;
-    const rowIndex = parseInt(params.rowIndex, 10) || parseInt(body.updatedClient?._rowIndex, 10);
+    const rowIndex = parseInt(rowIndexParam, 10) || parseInt(body.updatedClient?._rowIndex, 10);
 
     console.log('[PATCH] sheetName:', sheetName, '| rowIndex:', rowIndex);
 

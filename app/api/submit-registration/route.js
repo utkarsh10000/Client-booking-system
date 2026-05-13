@@ -108,7 +108,7 @@ async function uploadImageToDrive(drive, base64String, fileName, folderId) {
 const HEADER = [
   'Submission Date',
   'Client ID',
-  'Referral Type', 'Employee ID', 'Channel Partner Name', 'Employee Reference',
+  'Referral Type', 'Employee ID', 'Channel Partner Name', 'Employee Reference', 'Slab Percentage',
   'Project Name', 'Location', 'Plot No.', 'Sector',
   'Price/Sq.Yd (Rs)', 'Plot Size (sq.yd)',
   'BSP (Rs)', 'PLC', 'PLC Amount (Rs)',
@@ -196,6 +196,51 @@ export async function POST(request) {
     const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId: sheetId });
     const existingSheets = spreadsheet.data.sheets.map(s => s.properties.title);
 
+    // ── Auto-insert 'Slab Percentage' column if missing ───────────────────────
+    if (existingSheets.includes(sheetName)) {
+      const headerRow = await sheets.spreadsheets.values.get({
+        spreadsheetId: sheetId,
+        range: `${sheetName}!1:1`,
+      });
+      const headers = headerRow.data.values?.[0] || [];
+      const empRefIndex = headers.indexOf('Employee Reference');
+      const slabIndex   = headers.indexOf('Slab Percentage');
+
+      if (empRefIndex !== -1 && slabIndex === -1) {
+        const sheetMeta   = spreadsheet.data.sheets.find(s => s.properties.title === sheetName);
+        const sheetIdNum  = sheetMeta.properties.sheetId;
+
+        // Insert a blank column right after 'Employee Reference'
+        await sheets.spreadsheets.batchUpdate({
+          spreadsheetId: sheetId,
+          requestBody: {
+            requests: [{
+              insertDimension: {
+                range: {
+                  sheetId:    sheetIdNum,
+                  dimension:  'COLUMNS',
+                  startIndex: empRefIndex + 1,
+                  endIndex:   empRefIndex + 2,
+                },
+                inheritFromBefore: false,
+              },
+            }],
+          },
+        });
+
+        // Write the header into that new column
+        const colLetter = String.fromCharCode(65 + empRefIndex + 1);
+        await sheets.spreadsheets.values.update({
+          spreadsheetId: sheetId,
+          range: `${sheetName}!${colLetter}1`,
+          valueInputOption: 'RAW',
+          requestBody: { values: [['Slab Percentage']] },
+        });
+
+        console.log('[Sheets] Inserted Slab Percentage column at index', empRefIndex + 1);
+      }
+    }
+
     if (!existingSheets.includes(sheetName)) {
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId: sheetId,
@@ -247,6 +292,7 @@ export async function POST(request) {
       project?.employeeId           || '',
       project?.channelPartnerName   || '',
       project?.employeeReference    || '',
+      project?.slabPercentage ? `${project.slabPercentage}%` : '',
       project?.projectName    || '',
       project?.city           || project?.location || '',
       project?.plotNo         || '',
@@ -381,8 +427,6 @@ export async function POST(request) {
                     </tr>
                   </table>
                 </div>
-
-                <p style="font-size: 14px; color: #4a3728; line-height: 1.8;">Kindly review the attached document for complete details.</p>
 
                 <p style="font-size: 13px; color: #7a6a58; line-height: 1.8; background: #fdf8f0; border-left: 3px solid #c9a87c; padding: 10px 14px; border-radius: 4px;">
                   <strong>Note:</strong> In case of any refund, the original amount will be refunded through the original mode

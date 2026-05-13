@@ -250,9 +250,12 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
   const [saving, setSaving]     = useState(false);
 
   const Installments = useMemo(() => {
+    console.log('[DEBUG] client keys with install:', Object.keys(client).filter(k => k.toLowerCase().includes('install')));
+    console.log('[DEBUG] Installment Images value:', client['Installment Images']);
+    console.log('[DEBUG] Instalment Images value:', client['Instalment Images']);
     const parsed = parseInstallments(client['Installments Summary']);
     // Stitch image URLs from the separate "Installment Images" column (newline-separated)
-    const images = (client['Installment Images'] || '').split('\n').filter(Boolean);
+    const images = (client['Installment Images'] || client['Instalment Images'] || '').split('\n').filter(Boolean);
     return parsed.map((inst, i) => ({ ...inst, imageUrl: inst.imageUrl || images[i] || '' }));
   }, [client]);
 
@@ -284,7 +287,7 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
       // Upload image to Drive via API if a file was attached
       let imageUrl = '';
       if (form.imageBase64) {
-        const uploadRes = await fetch('/api/clients/upload-Installment-image', {
+        const uploadRes = await fetch('/api/clients/upload-instalment-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -313,7 +316,7 @@ function ClientProfile({ client: initialClient, onBack, onClientUpdate, showToas
         `Inst ${idx + 1}: Rs${i.amount || 0} | ${i.mode || '-'} | Ref: ${i.refId || '-'} | Date: ${i.date || '-'}${i.remark ? ` | Note: ${i.remark}` : ''}`
       ).join('\n');
 
-      const newInstImages  = updatedInsts.map(i => i.imageUrl || '').filter(Boolean).join('\n');
+      const newInstImages  = updatedInsts.map(i => i.imageUrl || '').join('\n');
       const newAmountPaid  = (bookingAmt + updatedInsts.reduce((s,i)=>s+(parseFloat(i.amount)||0),0)).toString();
 
       const updatedClient = {

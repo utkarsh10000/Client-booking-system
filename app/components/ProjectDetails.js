@@ -171,6 +171,7 @@ const lockedCity      = searchParams.get('city')         || '';
         employeeId:         referralType === 'employee'       ? (data.employeeId        || '') : '',
         channelPartnerName: referralType === 'channelPartner' ? (data.channelPartnerName || '') : '',
         employeeReference:  referralType === 'channelPartner' ? (data.employeeReference  || '') : '',
+        slabPercentage:     referralType === 'channelPartner' ? (data.slabPercentage     || '') : '',
       });
     }
   };
@@ -258,6 +259,22 @@ const lockedCity      = searchParams.get('city')         || '';
                 onChange={(e) => onChange({ ...data, employeeReference: e.target.value })}
                 style={inputStyle()}
               />
+            </div>
+            <div>
+              <label style={labelStyle}>Slab Percentage <span style={{ color: '#dc2626' }}>*</span></label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <input
+                  type="number"
+                  placeholder="e.g. 5"
+                  value={data.slabPercentage || ''}
+                  onChange={(e) => onChange({ ...data, slabPercentage: e.target.value })}
+                  style={inputStyle()}
+                  min="0"
+                  max="100"
+                  step="0.5"
+                />
+                <span style={{ fontSize: '0.9rem', color: 'var(--charcoal)', fontFamily: 'var(--font-body)', fontWeight: 600 }}>%</span>
+              </div>
             </div>
           </div>
         )}

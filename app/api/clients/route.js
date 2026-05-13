@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 
 const HEADER = [
   'Submission Date', 'Client ID',
-  'Referral Type', 'Employee ID', 'Channel Partner Name', 'Employee Reference',
+  'Referral Type', 'Employee ID', 'Channel Partner Name', 'Employee Reference', 'Slab Percentage',
   'Project Name', 'Location', 'Plot No.', 'Sector',
   'Price/Sq.Yd (Rs)', 'Plot Size (sq.yd)',
   'BSP (Rs)', 'PLC', 'PLC Amount (Rs)',
@@ -61,7 +61,7 @@ export async function GET(request) {
       for (const sheetName of sheetTabs) {
         const rangeRes = await sheets.spreadsheets.values.get({
           spreadsheetId: sheetId,
-          range: `${sheetName}!A1:AQ`,
+          range: `${sheetName}!A1:AR`,
         });
         const rows = rangeRes.data.values || [];
         if (rows.length < 2) continue;
@@ -85,7 +85,7 @@ export async function GET(request) {
     for (const sheetName of sheetTabs) {
       const rangeRes = await sheets.spreadsheets.values.get({
         spreadsheetId: sheetId,
-        range: `${sheetName}!A1:AQ`,
+        range: `${sheetName}!A1:AR`,
       });
       const rows = rangeRes.data.values || [];
       if (rows.length < 2) continue;
