@@ -31,7 +31,11 @@ export default function LoginPage() {
 
       if (!res.ok) { setError(data.error || 'Invalid password'); return; }
 
-      router.replace('/');
+      if (role === 'accountant') {
+        router.replace('/accountant');
+      } else {
+        router.replace('/');
+      }
     } catch (err) {
       setLoading(false);
       setError('Network error. Please try again.');
@@ -40,45 +44,81 @@ export default function LoginPage() {
 
   const roleCard = (roleKey, title, description, icon) => {
     const isSelected = role === roleKey;
+
+    const borderColor = isSelected
+      ? roleKey === 'admin'
+        ? 'var(--forest)'
+        : roleKey === 'accountant'
+          ? '#7c3aed'
+          : 'var(--gold)'
+      : 'var(--border)';
+
+    const bgColor = isSelected
+      ? roleKey === 'admin'
+        ? 'rgba(26,74,58,0.05)'
+        : roleKey === 'accountant'
+          ? 'rgba(124,58,237,0.05)'
+          : 'rgba(201,144,26,0.05)'
+      : 'var(--white)';
+
+    const iconBg = isSelected
+      ? roleKey === 'admin'
+        ? 'linear-gradient(135deg, var(--forest-dark), var(--forest))'
+        : roleKey === 'accountant'
+          ? 'linear-gradient(135deg, #5b21b6, #7c3aed)'
+          : 'linear-gradient(135deg, var(--gold), var(--gold-light))'
+      : 'var(--gray-light)';
+
     return (
       <button
         onClick={() => setRole(roleKey)}
         style={{
           flex: 1,
-          padding: '1.8rem 1.2rem',
-          border: `2px solid ${isSelected ? (roleKey === 'admin' ? 'var(--forest)' : 'var(--gold)') : 'var(--border)'}`,
+          padding: '1.5rem 0.8rem',
+          border: `2px solid ${borderColor}`,
           borderRadius: 'var(--radius-lg)',
-          background: isSelected
-            ? roleKey === 'admin'
-              ? 'rgba(26,74,58,0.05)'
-              : 'rgba(201,144,26,0.05)'
-            : 'var(--white)',
+          background: bgColor,
           cursor: 'pointer',
           fontFamily: 'var(--font-body)',
           transition: 'all 0.2s ease',
           textAlign: 'center',
         }}
       >
-        {/* Icon circle */}
         <div style={{
-          width: 52, height: 52,
+          width: 48, height: 48,
           borderRadius: '50%',
-          background: isSelected
-            ? roleKey === 'admin'
-              ? 'linear-gradient(135deg, var(--forest-dark), var(--forest))'
-              : 'linear-gradient(135deg, var(--gold), var(--gold-light))'
-            : 'var(--gray-light)',
+          background: iconBg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 1rem',
+          margin: '0 auto 0.8rem',
           transition: 'all 0.2s ease',
         }}>
           {icon}
         </div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--charcoal)', marginBottom: '0.3rem' }}>{title}</div>
-        <div style={{ fontSize: '0.78rem', color: 'var(--gray)', lineHeight: 1.5 }}>{description}</div>
+        <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--charcoal)', marginBottom: '0.3rem' }}>{title}</div>
+        <div style={{ fontSize: '0.72rem', color: 'var(--gray)', lineHeight: 1.4 }}>{description}</div>
       </button>
     );
   };
+
+  const iconColor = 'var(--gray)';
+
+  const passwordStepBg = role === 'admin'
+    ? 'linear-gradient(135deg, var(--forest-dark), var(--forest))'
+    : role === 'accountant'
+      ? 'linear-gradient(135deg, #5b21b6, #7c3aed)'
+      : 'linear-gradient(135deg, var(--gold), var(--gold-light))';
+
+  const loginBtnBg = role === 'admin'
+    ? 'var(--forest)'
+    : role === 'accountant'
+      ? '#7c3aed'
+      : 'var(--gold)';
+
+  const loginLabel = role === 'admin'
+    ? 'Admin Login'
+    : role === 'accountant'
+      ? 'Accountant Login'
+      : 'Employee Login';
 
   return (
     <>
@@ -113,7 +153,7 @@ export default function LoginPage() {
         pointerEvents: 'none',
       }} />
 
-      <div style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
+      <div style={{ width: '100%', maxWidth: 580, position: 'relative', zIndex: 1 }}>
 
         {/* Brand */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -125,7 +165,7 @@ export default function LoginPage() {
               color: 'var(--white)',
               letterSpacing: '0.04em',
               lineHeight: 1,
-            }}>Haute</span>
+            }}>Haute</span> 
             <span style={{
               fontFamily: 'var(--font-display)',
               fontSize: '2.2rem',
@@ -161,14 +201,16 @@ export default function LoginPage() {
               <p style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gray)', textAlign: 'center', marginBottom: '1.5rem' }}>
                 Select your role
               </p>
+
+              {/* All 3 roles in one row */}
               <div style={{ display: 'flex', gap: '1rem' }}>
                 {roleCard(
                   'employee',
                   'Employee',
                   'View plots & register clients',
                   <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                    <circle cx="11" cy="7" r="4" stroke={role === 'employee' ? 'white' : 'var(--gray)'} strokeWidth="1.5"/>
-                    <path d="M3 19c0-4 3.6-7 8-7s8 3 8 7" stroke={role === 'employee' ? 'white' : 'var(--gray)'} strokeWidth="1.5" strokeLinecap="round"/>
+                    <circle cx="11" cy="7" r="4" stroke={iconColor} strokeWidth="1.5"/>
+                    <path d="M3 19c0-4 3.6-7 8-7s8 3 8 7" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
                 )}
                 {roleCard(
@@ -176,8 +218,17 @@ export default function LoginPage() {
                   'Admin',
                   'Full access — manage everything',
                   <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                    <path d="M11 2L3 6v5c0 4.4 3.4 8.5 8 9.5 4.6-1 8-5.1 8-9.5V6L11 2z" stroke={role === 'admin' ? 'white' : 'var(--gray)'} strokeWidth="1.5" strokeLinejoin="round"/>
-                    <path d="M8 11l2 2 4-4" stroke={role === 'admin' ? 'white' : 'var(--gray)'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M11 2L3 6v5c0 4.4 3.4 8.5 8 9.5 4.6-1 8-5.1 8-9.5V6L11 2z" stroke={iconColor} strokeWidth="1.5" strokeLinejoin="round"/>
+                    <path d="M8 11l2 2 4-4" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+                {roleCard(
+                  'accountant',
+                  'Accountant',
+                  'Manage finances & ledgers',
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <rect x="3" y="3" width="16" height="16" rx="2" stroke={iconColor} strokeWidth="1.5"/>
+                    <path d="M7 11h8M7 7h4M7 15h6" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
                 )}
               </div>
@@ -203,26 +254,31 @@ export default function LoginPage() {
               <div style={{ textAlign: 'center', marginBottom: '1.6rem' }}>
                 <div style={{
                   width: 56, height: 56, borderRadius: '50%',
-                  background: role === 'admin'
-                    ? 'linear-gradient(135deg, var(--forest-dark), var(--forest))'
-                    : 'linear-gradient(135deg, var(--gold), var(--gold-light))',
+                  background: passwordStepBg,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   margin: '0 auto 0.8rem',
                 }}>
-                  {role === 'admin' ? (
+                  {role === 'admin' && (
                     <svg width="24" height="24" viewBox="0 0 22 22" fill="none">
                       <path d="M11 2L3 6v5c0 4.4 3.4 8.5 8 9.5 4.6-1 8-5.1 8-9.5V6L11 2z" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
                       <path d="M8 11l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                  ) : (
+                  )}
+                  {role === 'employee' && (
                     <svg width="24" height="24" viewBox="0 0 22 22" fill="none">
                       <circle cx="11" cy="7" r="4" stroke="white" strokeWidth="1.5"/>
                       <path d="M3 19c0-4 3.6-7 8-7s8 3 8 7" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
                     </svg>
                   )}
+                  {role === 'accountant' && (
+                    <svg width="24" height="24" viewBox="0 0 22 22" fill="none">
+                      <rect x="3" y="3" width="16" height="16" rx="2" stroke="white" strokeWidth="1.5"/>
+                      <path d="M7 11h8M7 7h4M7 15h6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  )}
                 </div>
                 <h4 style={{ color: 'var(--charcoal)', marginBottom: 0 }}>
-                  {role === 'admin' ? 'Admin Login' : 'Employee Login'}
+                  {loginLabel}
                 </h4>
               </div>
 
@@ -275,11 +331,11 @@ export default function LoginPage() {
               <button
                 onClick={handleLogin}
                 disabled={loading}
-                className={role === 'admin' ? 'btn-primary' : 'btn-primary'}
+                className="btn-primary"
                 style={{
                   width: '100%',
                   justifyContent: 'center',
-                  background: role === 'admin' ? 'var(--forest)' : 'var(--gold)',
+                  background: loginBtnBg,
                   opacity: loading ? 0.7 : 1,
                 }}
               >
@@ -302,7 +358,7 @@ export default function LoginPage() {
           )}
         </div>
       </div>
-
+ 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
     </>

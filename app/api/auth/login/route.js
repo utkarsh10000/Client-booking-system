@@ -5,12 +5,14 @@ import { cookies } from 'next/headers';
 export async function POST(request) {
   const { role, password } = await request.json();
 
-  const adminPass    = process.env.ADMIN_PASSWORD?.trim();
-  const employeePass = process.env.EMPLOYEE_PASSWORD?.trim();
+  const adminPass      = process.env.ADMIN_PASSWORD?.trim();
+  const employeePass   = process.env.EMPLOYEE_PASSWORD?.trim();
+  const accountantPass = process.env.ACCT_PASSWORD?.trim();
 
   let valid = false;
-  if (role === 'admin'    && password === adminPass)    valid = true;
-  if (role === 'employee' && password === employeePass) valid = true;
+  if (role === 'admin'      && password === adminPass)      valid = true;
+  if (role === 'employee'   && password === employeePass)   valid = true;
+  if (role === 'accountant' && password === accountantPass) valid = true;
 
   if (!valid) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });

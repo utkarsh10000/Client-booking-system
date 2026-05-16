@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 
 const HEADER = [
   'Submission Date', 'Client ID',
-  'Referral Type', 'Employee ID', 'Channel Partner Name', 'Employee Reference', 'Slab Percentage',
+  'Referral Type', 'Employee ID', 'Channel Partner Name', 'Employee Reference', 'Slab / Landing Rate',
   'Project Name', 'Location', 'Plot No.', 'Sector',
   'Price/Sq.Yd (Rs)', 'Plot Size (sq.yd)',
   'BSP (Rs)', 'PLC', 'PLC Amount (Rs)',

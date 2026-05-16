@@ -108,7 +108,7 @@ async function uploadImageToDrive(drive, base64String, fileName, folderId) {
 const HEADER = [
   'Submission Date',
   'Client ID',
-  'Referral Type', 'Employee ID', 'Channel Partner Name', 'Employee Reference', 'Slab Percentage',
+  'Referral Type', 'Employee ID', 'Channel Partner Name', 'Employee Reference', 'Slab / Landing Rate',
   'Project Name', 'Location', 'Plot No.', 'Sector',
   'Price/Sq.Yd (Rs)', 'Plot Size (sq.yd)',
   'BSP (Rs)', 'PLC', 'PLC Amount (Rs)',
@@ -196,7 +196,7 @@ export async function POST(request) {
     const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId: sheetId });
     const existingSheets = spreadsheet.data.sheets.map(s => s.properties.title);
 
-    // ── Auto-insert 'Slab Percentage' column if missing ───────────────────────
+    // ── Auto-insert 'Slab / Landing Rate' column if missing ───────────────────────
     if (existingSheets.includes(sheetName)) {
       const headerRow = await sheets.spreadsheets.values.get({
         spreadsheetId: sheetId,
@@ -204,7 +204,7 @@ export async function POST(request) {
       });
       const headers = headerRow.data.values?.[0] || [];
       const empRefIndex = headers.indexOf('Employee Reference');
-      const slabIndex   = headers.indexOf('Slab Percentage');
+      const slabIndex   = headers.indexOf('Slab / Landing Rate');
 
       if (empRefIndex !== -1 && slabIndex === -1) {
         const sheetMeta   = spreadsheet.data.sheets.find(s => s.properties.title === sheetName);
@@ -234,10 +234,10 @@ export async function POST(request) {
           spreadsheetId: sheetId,
           range: `${sheetName}!${colLetter}1`,
           valueInputOption: 'RAW',
-          requestBody: { values: [['Slab Percentage']] },
+          requestBody: { values: [['Slab / Landing Rate']] },
         });
 
-        console.log('[Sheets] Inserted Slab Percentage column at index', empRefIndex + 1);
+        console.log('[Sheets] Inserted Slab / Landing Rate column at index', empRefIndex + 1);
       }
     }
 

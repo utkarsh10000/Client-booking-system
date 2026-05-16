@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { generateQuotationPDF } from '../hooks/useQuotationPDF'; // ← adjust path if needed
 
 const PROJECT_OPTIONS = [
   'Expressway Residency',
@@ -73,17 +74,18 @@ export default function ProjectDetails({ data, onChange, onNext }) {
   const [touched, setTouched] = useState({});
   const [isCustomPLC, setIsCustomPLC] = useState(false);
   const [customPLCValue, setCustomPLCValue] = useState('');
-  const [referralType, setReferralType] = useState(''); // 'employee' | 'channelPartner' | ''
+  const [referralType, setReferralType] = useState('');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const fromLayout      = !!searchParams.get('plotId');
-const lockedPlotNo    = searchParams.get('plotNo')       || '';
-const lockedSector    = searchParams.get('sector')       || '';
-const lockedArea      = searchParams.get('area')         || '';
-const lockedPrice     = searchParams.get('price')        || '';
-const lockedProject   = searchParams.get('projectName')  || '';
-const lockedCity      = searchParams.get('city')         || '';
+  const lockedPlotNo    = searchParams.get('plotNo')       || '';
+  const lockedSector    = searchParams.get('sector')       || '';
+  const lockedArea      = searchParams.get('area')         || '';
+  const lockedPrice     = searchParams.get('price')        || '';
+  const lockedProject   = searchParams.get('projectName')  || '';
+  const lockedCity      = searchParams.get('city')         || '';
 
- useEffect(() => {
+  useEffect(() => {
     if (fromLayout) {
       const updated = {
         ...data,
@@ -99,12 +101,12 @@ const lockedCity      = searchParams.get('city')         || '';
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const bsp       = (parseFloat(data.pricePerSqYard) || 0) * (parseFloat(data.plotSize) || 0);
+  const bsp             = (parseFloat(data.pricePerSqYard) || 0) * (parseFloat(data.plotSize) || 0);
   const activePLCOption = isCustomPLC ? (customPLCValue ? `${customPLCValue}%` : '') : (data.plc || '');
-  const plcAmount = calcPLC(bsp, activePLCOption);
-  const devCharge = calcDevCharge(data.plotSize);
+  const plcAmount       = calcPLC(bsp, activePLCOption);
+  const devCharge       = calcDevCharge(data.plotSize);
   const hasClubMembership = data.projectName === 'Expressway Residency';
-  const totalCost = bsp + plcAmount + (hasClubMembership ? CLUB_MEMBERSHIP : 0) + devCharge;
+  const totalCost       = bsp + plcAmount + (hasClubMembership ? CLUB_MEMBERSHIP : 0) + devCharge;
 
   const fmt = (num) =>
     num.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -173,6 +175,36 @@ const lockedCity      = searchParams.get('city')         || '';
         employeeReference:  referralType === 'channelPartner' ? (data.employeeReference  || '') : '',
         slabPercentage:     referralType === 'channelPartner' ? (data.slabPercentage     || '') : '',
       });
+    }
+  };
+
+  // ── Download Quotation PDF ─────────────────────────────────────────────────
+  const handleDownloadQuotation = async () => {
+    // Basic check — need at least project, plot and price to make a useful PDF
+    const hasMinimumData =
+      data.projectName && data.plotNo && data.pricePerSqYard && data.plotSize;
+
+    if (!hasMinimumData) {
+      alert('Please fill in Project Name, Plot No., Price per Sq. Yard, and Plot Size before downloading the quotation.');
+      return;
+    }
+
+    setIsGeneratingPDF(true);
+    try {
+      await generateQuotationPDF({
+        data,
+        bsp,
+        plcAmount,
+        devCharge,
+        totalCost,
+        hasClubMembership,
+        activePLCOption,
+      });
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      alert('Could not generate PDF. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -261,7 +293,7 @@ const lockedCity      = searchParams.get('city')         || '';
               />
             </div>
             <div>
-              <label style={labelStyle}>Slab Percentage <span style={{ color: '#dc2626' }}>*</span></label>
+              <label style={labelStyle}>Slab / Landing Rate <span style={{ color: '#dc2626' }}>*</span></label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                 <input
                   type="number"
@@ -499,13 +531,13 @@ const lockedCity      = searchParams.get('city')         || '';
 
         {/* Club Membership */}
         {hasClubMembership && (
-        <div>
-          <label style={labelStyle}>
-            Club Membership
-            <span style={{ fontSize: '0.65rem', color: 'var(--gray)', fontWeight: 400, marginLeft: 6, textTransform: 'none', letterSpacing: 0 }}>fixed charge</span>
-          </label>
-          <input type="text" value="₹ 1,00,000" readOnly style={readOnlyStyle} tabIndex={-1} />
-        </div>
+          <div>
+            <label style={labelStyle}>
+              Club Membership
+              <span style={{ fontSize: '0.65rem', color: 'var(--gray)', fontWeight: 400, marginLeft: 6, textTransform: 'none', letterSpacing: 0 }}>fixed charge</span>
+            </label>
+            <input type="text" value="₹ 1,00,000" readOnly style={readOnlyStyle} tabIndex={-1} />
+          </div>
         )}
 
         {/* Dev Charge */}
@@ -542,6 +574,83 @@ const lockedCity      = searchParams.get('city')         || '';
           ₹ {fmt(totalCost)}
         </div>
       </div>
+
+      {/* ── Download Quotation Button ── */}
+      <div style={{
+        marginTop: '1rem',
+        padding: '1rem 1.4rem',
+        background: 'var(--gray-light)',
+        borderRadius: 'var(--radius)',
+        border: '1.5px solid rgba(0,0,0,0.07)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '0.8rem',
+      }}>
+        <div>
+          <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: '0.88rem', color: 'var(--charcoal)', margin: 0 }}>
+            Download Quotation
+          </p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: 'var(--gray)', margin: '0.2rem 0 0' }}>
+            Generate a branded PDF to share with the client
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleDownloadQuotation}
+          disabled={isGeneratingPDF}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.65rem 1.4rem',
+            borderRadius: 'var(--radius)',
+            border: '1.5px solid var(--gold, #c9a87c)',
+            background: isGeneratingPDF ? 'rgba(201,168,124,0.15)' : 'transparent',
+            color: 'var(--gold, #c9a87c)',
+            fontFamily: 'var(--font-body)',
+            fontWeight: 700,
+            fontSize: '0.82rem',
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            cursor: isGeneratingPDF ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s ease',
+            opacity: isGeneratingPDF ? 0.7 : 1,
+          }}
+          onMouseEnter={(e) => {
+            if (!isGeneratingPDF) {
+              e.currentTarget.style.background = 'var(--gold, #c9a87c)';
+              e.currentTarget.style.color = 'var(--white, #fff)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isGeneratingPDF) {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--gold, #c9a87c)';
+            }
+          }}
+        >
+          {isGeneratingPDF ? (
+            <>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+                <path d="M21 12a9 9 0 11-6.219-8.56"/>
+              </svg>
+              Generating…
+            </>
+          ) : (
+            <>
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                <path d="M8 2v8M5 7l3 3 3-3M2 11v1a2 2 0 002 2h8a2 2 0 002-2v-1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Download Quotation
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Spinner keyframe — injected once */}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
         <button className="btn-primary" onClick={handleNext}>
