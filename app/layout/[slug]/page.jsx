@@ -351,7 +351,10 @@ function BookingInfoPopover({ bookedByName, bookedDate }) {
 function ManageEmployeesModal({ onClose }) {
   const [employees, setEmployees] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
-  const [form, setForm] = useState({ employeeId: "", name: "", phone: "" });
+  const [form, setForm] = useState({ employeeId: "", name: "", phone: "", password: "" });
+  const [resetingId, setResetingId] = useState(null);
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetSaving, setResetSaving] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -385,7 +388,7 @@ function ManageEmployeesModal({ onClose }) {
       setError(data.error || "Failed to add employee");
       return;
     }
-    setForm({ employeeId: "", name: "", phone: "" });
+    setForm({ employeeId: "", name: "", phone: "", password: "" });
     fetchEmployees();
   };
 
@@ -393,6 +396,19 @@ function ManageEmployeesModal({ onClose }) {
     if (!confirm("Remove this employee?")) return;
     await fetch(`/api/employees/${id}`, { method: "DELETE" });
     fetchEmployees();
+  };
+
+  const handleResetPassword = async (emp) => {
+    if (!resetPassword.trim()) return;
+    setResetSaving(true);
+    await fetch(`/api/employees/${emp._id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: resetPassword.trim() }),
+    });
+    setResetSaving(false);
+    setResetingId(null);
+    setResetPassword("");
   };
 
   return (
@@ -615,6 +631,18 @@ function ManageEmployeesModal({ onClose }) {
                 }}
               />
             </div>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "var(--forest)", marginBottom: 5, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                Password *
+              </label>
+              <input
+                type="password"
+                placeholder="Set a login password"
+                value={form.password}
+                onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+                style={{ width: "100%", padding: "9px 12px", border: "1.5px solid rgba(201,144,26,0.25)", borderRadius: "var(--radius)", fontSize: 13, boxSizing: "border-box", background: "var(--white)", color: "var(--charcoal)", outline: "none", fontFamily: "var(--font-body)" }}
+              />
+            </div>
             {error && (
               <div
                 style={{
@@ -750,23 +778,40 @@ function ManageEmployeesModal({ onClose }) {
                       </div>
                     )}
                   </div>
-                  <button
-                    onClick={() => handleDelete(emp._id)}
-                    style={{
-                      background: "rgba(139,26,26,0.08)",
-                      color: "#8b1a1a",
-                      border: "1px solid rgba(139,26,26,0.2)",
-                      borderRadius: "var(--radius)",
-                      padding: "5px 12px",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      fontFamily: "var(--font-body)",
-                      letterSpacing: "0.06em",
-                    }}
-                  >
-                    Remove
-                  </button>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button
+                        onClick={() => { setResetingId(resetingId === emp._id ? null : emp._id); setResetPassword(""); }}
+                        style={{ background: "rgba(201,144,26,0.1)", color: "var(--gold)", border: "1px solid rgba(201,144,26,0.3)", borderRadius: "var(--radius)", padding: "5px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "var(--font-body)", letterSpacing: "0.06em" }}
+                      >
+                        Reset PW
+                      </button>
+                      <button
+                        onClick={() => handleDelete(emp._id)}
+                        style={{ background: "rgba(139,26,26,0.08)", color: "#8b1a1a", border: "1px solid rgba(139,26,26,0.2)", borderRadius: "var(--radius)", padding: "5px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "var(--font-body)", letterSpacing: "0.06em" }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    {resetingId === emp._id && (
+                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                        <input
+                          type="password"
+                          placeholder="New password"
+                          value={resetPassword}
+                          onChange={(e) => setResetPassword(e.target.value)}
+                          style={{ padding: "5px 10px", border: "1.5px solid rgba(201,144,26,0.35)", borderRadius: "var(--radius)", fontSize: 12, fontFamily: "var(--font-body)", outline: "none", background: "var(--white)", color: "var(--charcoal)", width: 140 }}
+                        />
+                        <button
+                          onClick={() => handleResetPassword(emp)}
+                          disabled={resetSaving || !resetPassword.trim()}
+                          style={{ background: "var(--gold)", color: "var(--white)", border: "none", borderRadius: "var(--radius)", padding: "5px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "var(--font-body)", opacity: resetSaving ? 0.7 : 1 }}
+                        >
+                          {resetSaving ? "..." : "Save"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -1620,7 +1665,12 @@ export default function LayoutPage() {
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
-      .then((data) => setRole(data.role || "employee"));
+      .then((data) => {
+        setRole(data.role || "employee");
+        if (data.role === "employee" && data.employeeId) {
+          setHoldForm({ employeeId: data.employeeId, employeeName: data.employeeName || "" });
+        }
+      });
     fetch("/api/projects")
       .then((r) => r.json())
       .then((data) => {
@@ -3665,7 +3715,6 @@ export default function LayoutPage() {
             title={`Hold Plot No. ${selectedPlot?.plotNo}`}
             onClose={() => {
               setShowHoldModal(false);
-              setHoldForm({ employeeId: "", employeeName: "" });
             }}
           >
             <p
@@ -3680,66 +3729,79 @@ export default function LayoutPage() {
               <strong style={{ color: "var(--charcoal)" }}>48 hours</strong> and
               automatically released if not booked.
             </p>
-            <EmployeeIdInput
-              value={holdForm}
-              onSelect={({ employeeId, employeeName }) =>
-                setHoldForm({ employeeId, employeeName })
-              }
-            />
-            <div style={{ marginBottom: 20 }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: "var(--forest)",
-                  marginBottom: 6,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Employee Name
-              </label>
+
+            {isAdmin ? (
+              <>
+                <EmployeeIdInput
+                  value={holdForm}
+                  onSelect={({ employeeId, employeeName }) =>
+                    setHoldForm({ employeeId, employeeName })
+                  }
+                />
+                <div style={{ marginBottom: 20 }}>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "var(--forest)",
+                      marginBottom: 6,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Employee Name
+                  </label>
+                  <div
+                    style={{
+                      padding: "10px 14px",
+                      border: "1.5px solid rgba(201,144,26,0.25)",
+                      borderRadius: "var(--radius)",
+                      fontSize: 13,
+                      background: holdForm.employeeName ? "rgba(26,74,58,0.05)" : "var(--cream)",
+                      color: holdForm.employeeName ? "var(--forest)" : "var(--gray)",
+                      fontWeight: holdForm.employeeName ? 700 : 400,
+                      minHeight: 42,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    {holdForm.employeeName ? (
+                      <>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        {holdForm.employeeName}
+                      </>
+                    ) : (
+                      "Will auto-fill when you select an employee"
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
               <div
                 style={{
-                  padding: "10px 14px",
-                  border: "1.5px solid rgba(201,144,26,0.25)",
+                  marginBottom: 20,
+                  background: "rgba(26,74,58,0.05)",
+                  border: "1.5px solid rgba(26,74,58,0.2)",
                   borderRadius: "var(--radius)",
-                  fontSize: 13,
-                  background: holdForm.employeeName
-                    ? "rgba(26,74,58,0.05)"
-                    : "var(--cream)",
-                  color: holdForm.employeeName
-                    ? "var(--forest)"
-                    : "var(--gray)",
-                  fontWeight: holdForm.employeeName ? 700 : 400,
-                  minHeight: 42,
+                  padding: "12px 16px",
                   display: "flex",
                   alignItems: "center",
-                  gap: 8,
+                  gap: 10,
                 }}
               >
-                {holdForm.employeeName ? (
-                  <>
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    {holdForm.employeeName}
-                  </>
-                ) : (
-                  "Will auto-fill when you select an employee"
-                )}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--forest)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--forest)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 2 }}>Holding as</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--charcoal)" }}>{holdForm.employeeName} <span style={{ color: "var(--gray)", fontWeight: 400, fontFamily: "monospace" }}>({holdForm.employeeId})</span></div>
+                </div>
               </div>
-            </div>
+            )}
             <button
               onClick={handleHoldSubmit}
               disabled={saving || !holdForm.employeeName}

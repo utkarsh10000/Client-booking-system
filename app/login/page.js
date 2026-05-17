@@ -6,12 +6,15 @@ import Head from 'next/head';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole]         = useState(null);
-  const [password, setPassword] = useState('');
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [role, setRole]             = useState(null);
+  const [password, setPassword]     = useState('');
+  const [employeeId, setEmployeeId] = useState('');
+  const [error, setError]           = useState('');
+  const [loading, setLoading]       = useState(false);
 
   const handleLogin = async () => {
+    if (role === 'employee' && !employeeId.trim()) { setError('Please enter your Employee ID'); return; }
+    if (role === 'employee' && !/^HD\/EMP\/\d{3}$/.test(employeeId.trim().toUpperCase())) { setError('Format must be HD/EMP/XXX e.g. HD/EMP/010'); return; }
     if (!password.trim()) { setError('Please enter your password'); return; }
     setLoading(true);
     setError('');
@@ -20,7 +23,7 @@ export default function LoginPage() {
       const res  = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role, password }),
+        body: JSON.stringify({ role, password, employeeId }),
       });
 
       const text = await res.text();
@@ -239,7 +242,7 @@ export default function LoginPage() {
           {role && (
             <div>
               <button
-                onClick={() => { setRole(null); setPassword(''); setError(''); }}
+                onClick={() => { setRole(null); setPassword(''); setEmployeeId(''); setError(''); }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '0.4rem',
                   fontSize: '0.78rem', color: 'var(--gray)', background: 'none',
@@ -282,6 +285,43 @@ export default function LoginPage() {
                 </h4>
               </div>
 
+              {role === 'employee' && (
+                <div style={{ marginBottom: '1.2rem' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    color: 'var(--charcoal)',
+                    fontFamily: 'var(--font-body)',
+                    marginBottom: '0.4rem',
+                  }}>
+                    Employee ID
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. HD/EMP/010"
+                    value={employeeId}
+                    onChange={e => { setError(''); setEmployeeId(e.target.value.toUpperCase()); }}
+                    onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                    style={{
+                      width: '100%',
+                      padding: '0.8rem 1rem',
+                      border: '1.5px solid rgba(0,0,0,0.12)',
+                      borderRadius: 'var(--radius)',
+                      fontSize: '0.92rem',
+                      fontFamily: 'monospace',
+                      fontWeight: 600,
+                      letterSpacing: '0.05em',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      background: 'var(--white)',
+                      color: 'var(--charcoal)',
+                    }}
+                  />
+                </div>
+              )}
               <div style={{ marginBottom: '1.2rem' }}>
                 <label style={{
                   display: 'block',

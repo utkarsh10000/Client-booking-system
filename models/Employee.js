@@ -22,6 +22,10 @@ const EmployeeSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  password: {
+    type: String,
+    default: '',
+  },
 }, { timestamps: true });
 
 export default mongoose.models.Employee || mongoose.model('Employee', EmployeeSchema);

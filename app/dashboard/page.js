@@ -650,7 +650,7 @@ export default function DashboardPage() {
   useEffect(() => {
     fetch('/api/auth/me')
       .then(r => r.json())
-      .then(d => { if (d.role !== 'admin') router.replace('/login'); })
+      .then(d => { if (d.role !== 'admin' && d.role !== 'accountant') router.replace('/login'); })
       .catch(() => router.replace('/login'));
   }, [router]);
 

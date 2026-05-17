@@ -53,7 +53,8 @@ export default function HomePage() {
   const [saving,     setSaving]     = useState(false);
   const [error,      setError]      = useState('');
 
-  const isAdmin = role === 'admin';
+ const isAdmin = role === 'admin';
+ const isAccountant = role === 'accountant';
 
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.json()).then(d => setRole(d.role || 'employee'));
@@ -139,7 +140,16 @@ export default function HomePage() {
                   border: '1px solid rgba(201,144,26,0.3)'
                 }}>Admin</div>
               )}
-              {isAdmin && (
+              {(isAdmin || isAccountant) && (
+                <button onClick={() => router.push('/accountant')} style={{
+                  background: 'rgba(201,144,26,0.15)', color: 'var(--gold-pale)',
+                  border: '1px solid rgba(201,144,26,0.3)', padding: '8px 16px',
+                  borderRadius: 'var(--radius)', fontSize: 11, fontFamily: 'var(--font-body)',
+                  cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',
+                  fontWeight: 700,
+                }}>CRM Emails</button>
+              )}
+              {(isAdmin || isAccountant) && (
                 <button onClick={() => router.push('/dashboard')} style={{
                   background: 'rgba(201,144,26,0.15)', color: 'var(--gold-pale)',
                   border: '1px solid rgba(201,144,26,0.3)', padding: '8px 16px',

@@ -34,13 +34,16 @@ export async function POST(req) {
   try {
     await connectDB();
     const body = await req.json();
-    const { employeeId, name, phone } = body;
+    const { employeeId, name, phone, password } = body;
 
     if (!employeeId?.trim() || !name?.trim()) {
       return Response.json({ error: 'Employee ID and Name are required' }, { status: 400 });
     }
+    if (!password?.trim()) {
+      return Response.json({ error: 'Password is required' }, { status: 400 });
+    }
 
-    const exists = await Employee.findOne({ employeeId: employeeId.trim().toUpperCase() });
+    const exists = await Employee.findOne({ employeeId: employeeId.trim().toUpperCase(), active: true });
     if (exists) {
       return Response.json({ error: 'Employee ID already exists' }, { status: 409 });
     }
@@ -49,6 +52,7 @@ export async function POST(req) {
       employeeId: employeeId.trim().toUpperCase(),
       name: name.trim(),
       phone: phone?.trim() || '',
+      password: password.trim(),
     });
     return Response.json({ employee }, { status: 201 });
   } catch (err) {

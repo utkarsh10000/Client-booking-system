@@ -318,23 +318,42 @@ export default function AccountantPage() {
               Haute Developers
             </p>
           </div>
-          <button
-            onClick={() => router.replace('/login')}
-            style={{
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: 'var(--radius)',
-              color: 'rgba(255,255,255,0.8)',
-              padding: '0.5rem 1rem',
-              fontSize: '0.8rem',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-body)',
-              display: 'flex', alignItems: 'center', gap: '0.4rem',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 12H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h2M9 10l3-3-3-3M12 7H5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            Logout
-          </button>
+          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+            <button
+              onClick={() => router.push('/')}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: 'var(--radius)',
+                color: 'rgba(255,255,255,0.8)',
+                padding: '0.5rem 1rem',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-body)',
+                display: 'flex', alignItems: 'center', gap: '0.4rem',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 6.5H3M5.5 4L3 6.5l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Home
+            </button>
+            <button
+              onClick={() => router.replace('/login')}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: 'var(--radius)',
+                color: 'rgba(255,255,255,0.8)',
+                padding: '0.5rem 1rem',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-body)',
+                display: 'flex', alignItems: 'center', gap: '0.4rem',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 12H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h2M9 10l3-3-3-3M12 7H5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Logout
+            </button>
+          </div>
         </div>
       </div>
 

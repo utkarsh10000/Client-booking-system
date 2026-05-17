@@ -43,13 +43,13 @@ export async function PATCH(req, { params }) {
   }
 }
 
-// DELETE /api/employees/[id]  → soft-delete by mongo _id
+// DELETE /api/employees/[id]  → hard delete by mongo _id
 export async function DELETE(req, { params }) {
   if (!await isAdmin()) return Response.json({ error: 'Forbidden' }, { status: 403 });
   try {
     await connectDB();
     const { id } = await params;
-    await Employee.findByIdAndUpdate(id, { active: false });
+    await Employee.findByIdAndDelete(id);
     return Response.json({ success: true });
   } catch (err) {
     console.error(err);
