@@ -1890,7 +1890,11 @@ export default function LayoutPage() {
       );
       setSelectedPlot(data.plot);
       setShowHoldModal(false);
-      setHoldForm({ employeeId: "", employeeName: "" });
+      if (role === "employee") {
+        // keep employee's own ID pre-filled for next hold
+      } else {
+        setHoldForm({ employeeId: "", employeeName: "" });
+      }
     } else alert(data.error || "Failed to hold plot");
   };
 
